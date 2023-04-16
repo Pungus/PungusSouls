@@ -1,0 +1,15 @@
+ManifestFileVersion: 0
+CRC: 393806843
+AssetBundleManifest:
+  AssetBundleInfos:
+    Info_0:
+      Name: wep
+      Dependencies: {}
+    Info_1:
+      Name: souls
+      Dependencies:
+        Dependency_0: wep
+    Info_2:
+      Name: location2
+      Dependencies:
+        Dependency_0: wep

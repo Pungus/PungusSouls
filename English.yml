@@ -1,0 +1,80 @@
+$piece_arcanestone: "Arcane Stone"
+$piece_arcanestone_description: "Artisan Table Extension"
+
+$pungus_artgs: "Greatsword of Artorias"
+$pungus_artgs_description: "Sword born from the soul of the great grey wolf Sif, guardian of the grave of the Abysswalker Knight Artorias.\r\nSir Artorias hunted the Darkwraiths, and his sword strikes harder against dark servants."
+
+$item_pungus_bkhalberd: "Black Knight Halberd"
+$item_pungus_bkhalberd_description: "Halberd of the black knights who wander Lordran. Used to face chaos demons."
+
+$item_blackknightsword: "Black Knight Sword"
+$item_blackknightsword_description: "sword of the Black Knights who wander Lordran. Used to face chaos demons.  The Large motion that puts the weight of the body into the attack reflects the great size of their adversaries long ago."
+
+$item_blackknightaxe: "Black Knight GreatAxe"
+$item_blackknightaxe_description: "Greataxe of the Black Knights who wander Lordran. Used to face Chaos demons. The large motion that puts the weight of the body into the attack reflects the great size of their adversaries long ago."
+
+$item_blackknightugs: "Black Knight Greatsword"
+$item_blackknightugs_description: "Greatsword of the black knights who wander Lordran. Used to face chaos demons. The large motion that puts the weight of the body into the attack reflects the great size of their adversaries long ago."
+
+$item_channelertrident: "Channeler Trident"
+$item_channelertrident_description: "Trident of the Six-eyed Channelers, sorcerers who serve Seath the Scaleless in collecting human specimens. Thrusted in circular motions in a unique martial arts dance that stirs nearby allies into a bloodthirsty frenzy."
+
+$piece_arcaneanvil: "Arcane Anvil"
+$piece_arcaneanvil_description: "Artisan Table Extension"
+
+$item_priscdagger: "Priscillas Dagger"
+$item_priscdagger_description: "This sword, one of the rare dragon weapons, came from the tail of Priscilla, the Dragon Crossbreed in the painted world of Ariamis. Possessing the power of lifehunt, it dances about when wielded, in a fashion reminiscent of the white-robed painting guardians."
+
+$pungus_DarkSilverTracer: "Dark Silver Tracer"
+$pungus_DarkSilverTracer_description: "A dark silver dagger used by the Lord's Blade Ciaran, of Gwyn's Four Knights. The victim is first distracted by dazzling streaks of the Gold Tracer, then stung by the vicious poison of this dagger"
+
+$item_darksword: "dark sword"
+$item_darksword_description: "The sword of the knights of the Four Kings of New Londo. Its blade is wide and thick and it is wielded in an unusual manner. When the Four Kings were seduced by evil, their knights became Darkwraiths, servants of the Dark who wielded these darkswords."
+
+$item_DemonHammer: "Demon Great Hammer"
+$item_DemonHammer_description: "Demon weapon built from the stone archtrees. Used by lesser demons at North Undead Asylum. This hammer is imbued with no special power, but will merrily beat foes to a pulp, provided you have the strength to wield it."
+
+$item_dragongreatsword: "Dragon GreatSword"
+$item_dragongreatsword_description: "This sword, one of the rare dragon weapons, came from the tail of the stone dragon of Ash Lake, descendant of the ancient dragons"
+
+$item_dragonkinggreataxe: "Dragon King GreatAxe"
+$item_dragonkinggreataxe_description: "This axe, one of the rare dragon weapons, is formed by the tail of the Gaping Dragon, a distant, deformed descendant of the everlasting dragons."
+
+$item_pungus_DSbow: "DragonSlayer GreatBow"
+$item_pungus_DSbow_description: "Bow of the Dragonslayers, led by Hawkeye Gough, one of Gwyn's Four Knights. This bow's unusual size requires that it be anchored to the ground when fired. Only uses specialized great arrows."
+
+$item_pungus_dspear: "DragonSlayer Spear"
+$item_pungus_dspear_description: "Cross spear born from the soul of Ornstein, a Dragonslayer guarding Anor Londo cathedral. Inflicts lightning damage; effective against dragons. Two-handed thrust relies on cross and buries deep within a dragon's hide, and sends human foes flying."
+
+$pungus_DragonTooth: "Dragon Tooth"
+$pungus_DragonTooth_description: "Created from an everlasting dragon tooth. Legendary great hammer of Havel the Rock. The dragon tooth will never break as it is harder than stone, and it grants its wielder resistance to magic and flame"
+
+$item_drakesword: "Drake Sword"
+$item_drakesword_description: "This sword, one of the rare dragon weapons, is formed by a drake's tail. Drakes are seen as undeveloped imitators of the dragons, but they are likely their distant kin.\r\nThe sword is imbued with a mystical power, to be released when held with both hands."
+
+$item_furysword: "Quelags Fury Sword"
+$item_furysword_description: "A curved sword born from the soul of Quelaag, daughter of the Witch of Izalith, who was transformed into a chaos demon. Like Quelaag's body, the sword features shells, spikes, humanity and a coating of chaos fire."
+
+$pungus_Glordsword: "GraveLord Sword"
+$pungus_Glordsword_description: "Sword wielded only by servants of Gravelord Nito, the first of the dead. Crafted from the bones of the fallen. The miasma of death exudes from the sword, a veritable toxin to any living being."
+
+$pungus_goldtracer: "Gold Tracer"
+$pungus_goldtracer_description: "Curved sword used by the Lord's Blade Ciaran, one of Gwyn's Four Knights. Ciaran brandishes her sword in a mesmerizing dance, etching the darkness with dire streaks of gold."
+
+$item_GreatLordGreatSword: "Great Lord GreatSword"
+$item_GreatLordGreatSword_description: "Greatsword born from the soul of Gwyn, Lord of Cinder. As bearer of the ultimate soul, Gwyn wielded the bolts of the sun, but before linking the fire, divided that power amongst his children, and set off with only this greatsword as his companion."
+
+$piece_arcanelamp: "Arcane Lantern"
+$piece_arcanelamp_description: "Atrisan Table Extension"
+
+$pungus_MLGreatsword: "Moonlight Greatsword"
+$pungus_MLGreatsword_description: "This sword, one of the rare dragon weapons, came from the tail of Seath the Scaleless, the pale white dragon who betrayed his own. Seath is the grandfather of sorcery, and this sword is imbued with his magic, which shall be unleashed as a wave of moonlight."
+
+$item_pungus_MLHorn: "Moonlight Butterfly Horn"
+$item_pungus_MLHorn_description: "Weapon born from the mystical creature of the Darkroot Garden, the Moonlight Butterfly. The horns of the butterfly, a being created by Seath, are imbued with a pure magic power."
+
+$item_sunlightsword: "sunlight shield"
+$item_sunlightsword_description: "Shield of Solaire of Astora, Knight of Sunlight. Decorated with a holy symbol, but Solaire illustrated it himself, and it has no divine powers of its own. As it turns out, Solaire's incredible prowess is a product of his own training, and nothing else."
+
+$item_sunshield: "Sunlight StraightSword"
+$item_sunshield_description: "This standard longsword, belonging to Solaire of Astora, is of high quality, is well-forged, and has been kept in good repair. Easy to use and dependable, but unlikely to live up to its grandiose name."

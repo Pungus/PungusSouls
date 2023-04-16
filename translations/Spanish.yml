@@ -1,0 +1,82 @@
+$piece_arcanestone: "Piedra Arcana"
+$piece_arcanestone_description: "Extensión de Mesa de Artesanía"
+
+$pungus_artgs: "Gran Espada de Artorias"
+$pungus_artgs_description: "Espada nacida del alma de la gran loba gris Sif, guardiana de la tumba del Caballero Caminante del Abismo Artorias. Sir Artorias cazó a los Espectros Oscuros, y su espada golpea con más fuerza a los siervos oscuros."
+
+$item_pungus_bkhalberd: "Alabarda del Caballero Negro"
+$item_pungus_bkhalberd_description: "Alabarda de los caballeros negros que vagan por Lordran. Usada para enfrentarse a los demonios del caos"
+
+$item_blackknightsword: "Espada de los caballeros negros"
+$item_blackknightsword_description: "Espada de los Caballeros Negros que vagan por Lordran. Usada para enfrentarse a los demonios del caos."
+
+$item_blackknightaxe: "Gran Hacha del Caballero Negro"
+$item_blackknightaxe_description: "Greataxe de los Caballeros Negros que vagan por Lordran. Se usa para enfrentarse a los demonios del Caos."
+
+$item_blackknightugs: "Espadón del Caballero Negro"
+$item_blackknightugs_description: "Espadón de los caballeros negros que vagan por Lordran. Se usa para enfrentarse a los demonios del caos."
+
+$item_channelertrident: "Tridente de los Canalizadores"
+$item_channelertrident_description: "Tridente de los Canalizadores de Seis Ojos, hechiceros que sirven a Seath el Sin Escala en la recolección de especímenes humanos. Se lanza con movimientos circulares en una danza marcial única que provoca un frenesí sanguinario en los aliados cercanos."
+
+$piece_arcaneanvil: "Yunque Arcano"
+$piece_arcaneanvil_description: "Extensión de Mesa de Artesanía"
+
+$pieza_priscdagger: "Daga Priscillas"
+$item_priscdagger_description: "Esta espada es una de las raras armas de dragón, procede de la cola de Priscila, la mestiza de dragón del mundo pintado de Ariamis. Al poseer el poder de la caza de la vida, baila cuando se empuña de una forma que recuerda a los guardianes pintados de túnica blanca."
+
+$pungus_DarkSilverTracer: "Daga Oscura de Plata"
+$pungus_DarkSilverTracer_description: "Una daga de plata oscura utilizada por el Lord's Blade Ciaran de los Cuatro Caballeros de Gwyn. La víctima es distraída primero por las deslumbrantes vetas del Trazador de Oro, y luego picada por el vicioso veneno de esta daga"
+
+$item_darksword: "Espada oscura"
+$item_darksword_description: "La espada de los caballeros de los Cuatro Reyes de Nuevo Londo. Su hoja es ancha y gruesa y se blande de una forma poco habitual. Cuando los Cuatro Reyes fueron seducidos por el mal, sus caballeros se convirtieron en Darkwraiths, siervos de la Oscuridad que blandían estas espadas oscuras."
+
+$item_DemonHammer: "Gran Martillo Demonio"
+$item_DemonHammer_description: "Arma demoníaca construida a partir de los arcos de piedra. Usada por demonios menores en el Asilo de No Muertos del Norte. Este martillo no está imbuido de ningún poder especial, pero golpeará alegremente a los enemigos hasta hacerlos papilla, siempre que tengas la fuerza para blandirlo."
+
+$item_dragongreatsword: "Gran Espada Dragón"
+$item_dragongreatsword_description: "Una de las raras armas de dragón, procede de la cola del dragón de piedra del Lago Ceniza, descendiente de los antiguos dragones"
+
+$item_dragonkinggreataxe: "Gran Hacha del Rey Dragón"
+$item_dragonkinggreataxe_description: "Una de las raras armas de dragón, está formada por la cola del Dragón Gaping, un lejano y deforme descendiente de los dragones eternos."
+
+$item_pungus_DSbow: "Gran Arco Matadragones"
+$item_pungus_DSbow_description: "Arco de los Matadragones, liderados por Ojo de Halcón Gough, uno de los Cuatro Caballeros de Gwyn. El inusual tamaño de este arco requiere que esté anclado al suelo cuando se dispara. Sólo utiliza grandes flechas especializadas"
+
+$item_pungus_dspear: "Lanza Matadragones"
+$item_pungus_dspear_description: "Lanza nacida del alma de Ornstein, un Matadragones que custodiaba la catedral de Anor Londo. Inflige daño de rayo; eficaz contra dragones. La estocada a dos manos se apoya en la cruz y se entierra profundamente en la piel de un dragón y lanza por los aires a los enemigos humanos."
+
+$pungus_DragonTooth: "Diente de Dragón"
+$pungus_DragonTooth_description: "Creado a partir de un eterno diente de dragón. Gran martillo legendario de Havel la Roca. El diente de dragón nunca se romperá ya que es más duro que la piedra y otorga a su portador resistencia a la magia y a las llamas"
+
+$item_drakesword: "Espada Dragón"
+$item_drakesword_description: "Una de las raras armas de dragón, está formada por la cola de un draco. Los dracos son vistos como imitadores no desarrollados de los dragones, pero es probable que sean sus parientes lejanos. La espada está imbuida de un poder místico que se libera cuando se sujeta con ambas manos."
+
+$item_furysword: "Espada Furia de Quelags"
+$item_furysword_description: "Una espada curva nacida del alma de Quelaag, hija de la Bruja de Izalith, que fue transformada en un demonio del caos. Al igual que el cuerpo de Quelaag, la espada presenta caparazones, púas, humanidad y una capa de fuego del caos."
+
+$pungus_Glordsword: "Espada del Señor de la Tumba"
+$pungus_Glordsword_description: "Espada empuñada sólo por siervos del Señor de la Tumba  Nito, el primero de los muertos. Fabricada con los huesos de los caídos. El miasma de la muerte exuda de la espada, una verdadera toxina para cualquier ser vivo."
+
+$pungus_goldtracer: "Rastreador de Oro"
+$pungus_goldtracer_description: "Espada curva usada por Ciaran, la Espada del Señor, uno de los Cuatro Caballeros de Gwyn. Ciaran blande su espada en una danza hipnotizadora grabando la oscuridad con funestas vetas de oro."
+
+$item_GreatLordGreatSword: "Espadón del Gran Señor"
+$item_GreatLordGreatSword_description: "Gran Espada nacida del alma de Gwyn, Señor de la Ceniza. Como portador del alma suprema, Gwyn empuñó los rayos del sol pero antes de enlazar el fuego dividió ese poder entre sus hijos y partió sólo con esta gran espada como compañera."
+
+$piece_arcanelamp: "Linterna Arcana"
+$piece_arcanelamp_description: "Extensión de Mesa de Artesanía"
+
+$pungus_MLGreatsword: "Gran Espada Luz de Luna"
+$pungus_MLGreatsword_description: "Una de las raras armas de dragón, procede de la cola de Seath el Descalzo, el pálido dragón blanco que traicionó a los suyos. Seath es el abuelo de la hechicería, y esta espada está imbuida de su magia que se desatará como una ola de luz de luna."
+
+$item_pungus_MLHorn: "Cuerno de Mariposa Luz de Luna"
+$item_pungus_MLHorn_description: "Arma nacida de la mística Mariposa Luz de Luna del Jardín Raiz Oscura. Los cuernos de la mariposa, un ser creado por Seath, están imbuidos de un poder mágico puro."
+
+$item_sunlightsword: "Escudo de Luz Solar"
+$item_sunlightsword_description: "Escudo de Solaire de Astora, Caballero de la Luz Solar. Decorado con un símbolo sagrado, pero Solaire lo ilustró él mismo y no tiene poderes divinos propios. Resulta que las increíbles proezas de Solaire son producto de su propio entrenamiento y nada más."
+
+$item_sunshield: "Espada Recta Solaire"
+$item_sunshield_description: "Espada larga estándar perteneciente a Solaire de Astora, es de gran calidad, está bien forjada y se ha mantenido en buen estado. Fácil de usar y fiable, pero es poco probable que haga honor a su grandioso nombre."
+
+
