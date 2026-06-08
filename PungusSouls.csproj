@@ -187,7 +187,6 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include=".gitignore" />
-    <Content Include="assembly_guiutils_publicized.dll" />
     <Content Include="assets\DropAssetBundleInThisFolder.txt" />
     <EmbeddedResource Include="assets\firelinkicon.png" />
     <Content Include="icons\README.txt" />
