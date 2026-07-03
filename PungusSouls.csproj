@@ -14,6 +14,8 @@
     <LangVersion>12</LangVersion>
     <Nullable>enable</Nullable>
     <TargetFrameworkProfile />
+    <NuGetPackageImportStamp>
+    </NuGetPackageImportStamp>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -76,9 +78,6 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>C:\Users\Jerem\AppData\Roaming\r2modmanPlus-local\Valheim\profiles\New game\BepInEx\core\BepInEx.dll</HintPath>
     </Reference>
-    <Reference Include="BlacksmithTools">
-      <HintPath>..\..\jeremy\Downloads\BlacksmithTools.dll</HintPath>
-    </Reference>
     <Reference Include="LocalizationManager, Version=1.4.1.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>Libs\LocalizationManager.dll</HintPath>
@@ -90,6 +89,9 @@
     </Reference>
     <Reference Include="SoftReferenceableAssets_publicized">
       <HintPath>C:\Program Files (x86)\Steam\steamapps\common\Valheim\valheim_Data\Managed\publicized_assemblies\SoftReferenceableAssets_publicized.dll</HintPath>
+    </Reference>
+    <Reference Include="Splatform">
+      <HintPath>E:\SteamLibrary\steamapps\common\Valheim\valheim_Data\Managed\Splatform.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -137,6 +139,9 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>E:\SteamLibrary\steamapps\common\Valheim\valheim_Data\Managed\publicized_assemblies\UnityEngine.TextRenderingModule_publicized.dll</HintPath>
     </Reference>
+    <Reference Include="UnityEngine.UIModule">
+      <HintPath>E:\SteamLibrary\steamapps\common\Valheim\valheim_Data\Managed\UnityEngine.UIModule.dll</HintPath>
+    </Reference>
     <Reference Include="UnityEngine.UI_publicized, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>E:\SteamLibrary\steamapps\common\Valheim\valheim_Data\Managed\publicized_assemblies\UnityEngine.UI_publicized.dll</HintPath>
@@ -145,18 +150,66 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>E:\SteamLibrary\steamapps\common\Valheim\valheim_Data\Managed\publicized_assemblies\UnityEngine_publicized.dll</HintPath>
     </Reference>
-    <Reference Include="YamlDotNet, Version=13.0.0.0, Culture=neutral, PublicKeyToken=ec19458f3c15af5e, processorArchitecture=MSIL">
-      <HintPath>packages\YamlDotNet.13.0.2\lib\net45\YamlDotNet.dll</HintPath>
+    <Reference Include="YamlDotNet, Version=18.0.0.0, Culture=neutral, PublicKeyToken=ec19458f3c15af5e, processorArchitecture=MSIL">
+      <HintPath>packages\YamlDotNet.18.0.0\lib\net47\YamlDotNet.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="assets\assets" />
-    <EmbeddedResource Include="assets\piece" />
-    <EmbeddedResource Include="assets\punguslocations" />
-    <None Include="assets\ValheimAddNewEnv.cs" />
     <Compile Include="Animations.cs" />
-    <Compile Include="ClearAreas.cs" />
-    <Compile Include="EnvironmentManager.cs" />
+    <EmbeddedResource Include="assets\DynamicBone.cs" />
+    <EmbeddedResource Include="assets\DynamicBoneCollider.cs" />
+    <EmbeddedResource Include="assets\DynamicBoneColliderBase.cs" />
+    <EmbeddedResource Include="assets\DynamicBonePlaneCollider.cs" />
+    <Compile Include="ClearAreasNew.cs" />
+    <Compile Include="CompanionFramework\Core\Agent\AgentBrain.cs" />
+    <Compile Include="CompanionFramework\Core\Agent\AgentContext.cs" />
+    <Compile Include="CompanionFramework\Integration\AgentBedAssignmentPatch.cs" />
+    <Compile Include="CompanionFramework\Integration\AgentBedExitAssist.cs" />
+    <Compile Include="CompanionFramework\Integration\AgentBehaviourController.cs" />
+    <Compile Include="CompanionFramework\Integration\AgentContainerAccessPatch.cs" />
+    <Compile Include="CompanionFramework\Integration\AgentDepositChestGuiPatch.cs" />
+    <Compile Include="CompanionFramework\Integration\AgentFood.cs" />
+    <Compile Include="CompanionFramework\Integration\AgentFoodDedicatedInventoryPatch.cs" />
+    <Compile Include="CompanionFramework\Integration\AgentFoodInventory.cs" />
+    <Compile Include="CompanionFramework\Integration\AgentFoodInventoryGuiPatch.cs" />
+    <Compile Include="CompanionFramework\Integration\AgentFoodStatPatches.cs" />
+    <Compile Include="CompanionFramework\Integration\AgentHealthRegen.cs" />
+    <Compile Include="CompanionFramework\Integration\AgentItemPickup.cs" />
+    <Compile Include="CompanionFramework\Integration\AgentItemPickupInstallerPatch.cs" />
+    <Compile Include="CompanionFramework\Integration\AgentNeedsInstallerPatch.cs" />
+    <Compile Include="CompanionFramework\Integration\AgentNeedsInventoryGuiPatch.cs" />
+    <Compile Include="CompanionFramework\Integration\AgentPrefabInstallerPatch.cs" />
+    <Compile Include="CompanionFramework\Integration\AgentPrefabProfile.cs" />
+    <Compile Include="CompanionFramework\Integration\AgentPrefabRegistry.cs" />
+    <Compile Include="CompanionFramework\Integration\AgentStamina.cs" />
+    <Compile Include="CompanionFramework\Integration\AgentTerrainStepAssist.cs" />
+    <Compile Include="CompanionFramework\Integration\AgentTMPFont.cs" />
+    <Compile Include="CompanionFramework\Integration\InventoryWeightPatch.cs" />
+    <Compile Include="CompanionFramework\Integration\PlayerInteractPatch.cs" />
+    <Compile Include="CompanionFramework\Integration\PrefabInitializer.cs" />
+    <Compile Include="CompanionFramework\Integration\TombstoneContainerAwake.cs" />
+    <Compile Include="CompanionFramework\Integration\TombstoneInstantResurrectPatch.cs" />
+    <Compile Include="CompanionFramework\Modules\Death\AgentDeathTombstoneController.cs" />
+    <Compile Include="CompanionFramework\Modules\Death\AgentTombstoneResurrect.cs" />
+    <Compile Include="CompanionFramework\Modules\Follow\FollowBehaviour.cs" />
+    <Compile Include="CompanionFramework\Modules\HomeZone\HomeZoneBehaviour.cs" />
+    <Compile Include="CompanionFramework\Modules\HomeZone\HomeZoneController.cs" />
+    <Compile Include="CompanionFramework\Modules\HomeZone\HomezoneVisuals.cs" />
+    <Compile Include="CompanionFramework\Systems\Inventory\Items.cs" />
+    <Compile Include="CompanionFramework\Modules\UI\RadialMenu.cs" />
+    <Compile Include="CompanionFramework\Systems\Interaction\IInteractable.cs" />
+    <Compile Include="CompanionFramework\Core\Agent\AgentComponent.cs" />
+    <Compile Include="CompanionFramework\Integration\AgentContainerComponents.cs" />
+    <Compile Include="CompanionFramework\Systems\Inventory\AgentInventory.cs" />
+    <Compile Include="CompanionFramework\Integration\GameBootstrap.cs" />
+    <Compile Include="CompanionFramework\Systems\Inventory\AgentContainer.cs" />
+    <Compile Include="CompanionFramework\Systems\Inventory\InventoryExchangeService.cs" />
+    <Compile Include="CompanionFramework\Integration\NPCInstaller.cs" />
+    <Compile Include="PungusTools\BlacksmithTools.BodyPartController.cs" />
+    <Compile Include="PungusTools\BlacksmithTools.BodypartSystem.cs" />
+    <Compile Include="PungusTools\BlacksmithTools.BoneReorder.cs" />
+    <Compile Include="PungusTools\BlacksmithTools.Util.cs" />
+    <None Include="EnvironmentManager.cs" />
     <Compile Include="Managers\CreatureManager.cs" />
     <Compile Include="Managers\ItemManager.cs" />
     <Compile Include="Managers\LocalizationManager.cs" />
@@ -173,11 +226,19 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
+    <Compile Include="PungusTools\BonfireController.cs" />
+    <Compile Include="PungusTools\BonfireSpawner.cs" />
+    <Compile Include="PungusTools\DynamicBone.cs" />
+    <Compile Include="PungusTools\DynamicBoneCollider.cs" />
+    <Compile Include="PungusTools\DynamicBoneColliderBase.cs" />
+    <Compile Include="PungusTools\DynamicBonePlaneCollider.cs" />
+    <Compile Include="Managers\EffectsManager.cs" />
+    <Compile Include="PungusTools\ZNetSceneAwakeDebugPatch.cs" />
+    <Compile Include="PungusTools\ZNetSceneNullPrefabGuardPatch.cs" />
     <Compile Include="VersionHandshake.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
-    <EmbeddedResource Include="assets\shared" />
     <EmbeddedResource Include="assets\souls" />
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
@@ -187,7 +248,6 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include=".gitignore" />
-    <Content Include="assets\DropAssetBundleInThisFolder.txt" />
     <EmbeddedResource Include="assets\firelinkicon.png" />
     <Content Include="icons\README.txt" />
     <Content Include="ILRepack.targets" />
@@ -221,14 +281,13 @@
   <ItemGroup>
     <WCFMetadata Include="Connected Services\" />
   </ItemGroup>
+  <ItemGroup>
+    <Folder Include="CompanionFramework\Modules\Inventory\" />
+    <Folder Include="CompanionFramework\Systems\Combat\" />
+    <Folder Include="CompanionFramework\Systems\UI\" />
+    <Folder Include="CompanionFramework\Systems\World\" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <Import Project="packages\ILRepack.Lib.MSBuild.Task.2.0.18.2\build\ILRepack.Lib.MSBuild.Task.targets" Condition="Exists('packages\ILRepack.Lib.MSBuild.Task.2.0.18.2\build\ILRepack.Lib.MSBuild.Task.targets')" />
-  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
-    <PropertyGroup>
-      <ErrorText>This project references NuGet package(s) that are missing on this computer. Enable NuGet Package Restore to download them. For more information, see http://go.microsoft.com/fwlink/?LinkID=322105.The missing file is {0}.</ErrorText>
-    </PropertyGroup>
-    <Error Condition="!Exists('packages\ILRepack.Lib.MSBuild.Task.2.0.18.2\build\ILRepack.Lib.MSBuild.Task.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\ILRepack.Lib.MSBuild.Task.2.0.18.2\build\ILRepack.Lib.MSBuild.Task.targets'))" />
-  </Target>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
          Other similar extension points exist, see Microsoft.Common.targets.
     <Target Name="BeforeBuild">
@@ -285,5 +344,12 @@
     <Copy SourceFiles="@(NexusPackageFiles)" DestinationFolder="$(PackageDir)" />
     <ZipDirectory SourceDirectory="$(PackageDir)" DestinationFile="Nexus\$(PackageName).zip" Overwrite="true" />
     <RemoveDir Directories="$(PackageDir)" />
+  </Target>
+  <Import Project="packages\ILRepack.Lib.MSBuild.Task.2.0.45\build\ILRepack.Lib.MSBuild.Task.targets" Condition="Exists('packages\ILRepack.Lib.MSBuild.Task.2.0.45\build\ILRepack.Lib.MSBuild.Task.targets')" />
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('packages\ILRepack.Lib.MSBuild.Task.2.0.45\build\ILRepack.Lib.MSBuild.Task.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\ILRepack.Lib.MSBuild.Task.2.0.45\build\ILRepack.Lib.MSBuild.Task.targets'))" />
   </Target>
 </Project>
