@@ -11,6 +11,7 @@ using ServerSync;
 using StatusEffectManager;
 using System;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using UnityEngine;
 using Range = LocationManager.Range;
@@ -32,6 +33,31 @@ namespace PungusSouls
         internal static string ConnectionError = "";
         private readonly Harmony _harmony = new(ModGUID);
         public static GameObject BonfirePrefab;
+
+
+        public static GameObject GetBonfirePrefab()
+        {
+            if (BonfirePrefab != null)
+                return BonfirePrefab;
+
+            if (assetBundle == null)
+            {
+                Debug.LogError("[PungusSouls] AssetBundle is null");
+                return null;
+            }
+
+            BonfirePrefab =
+                assetBundle.LoadAsset<GameObject>("PS_Bonfire");
+
+            if (BonfirePrefab == null)
+            {
+                Debug.LogError("[PungusSouls] Failed to load PS_Bonfire");
+            }
+
+            return BonfirePrefab;
+        }
+
+
         public static readonly ManualLogSource PungusSoulsLogger =
             BepInEx.Logging.Logger.CreateLogSource(ModName);
 
@@ -54,16 +80,112 @@ namespace PungusSouls
         public static ConfigEntry<bool> bodyHidingEnabled;
 
         public static ConfigEntry<bool> loggingEnabled;
-
         public enum Toggle
         {
             On = 1,
             Off = 0
         }
+        private static void SafeStep(string name, Action action)
+        {
+            try
+            {
+                Debug.Log($"[PungusSouls] >>> START {name}");
+
+                action();
+
+                Debug.Log($"[PungusSouls] <<< END {name}");
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"[PungusSouls] !!! FAILED {name}");
+                Debug.LogError(ex);
+                throw;
+            }
+        }
+
+        private GameObject LoadPrefabSafe(string prefabName)
+        {
+            try
+            {
+                Debug.Log($"[PungusSouls] Loading prefab: {prefabName}");
+
+                GameObject prefab = assetBundle.LoadAsset<GameObject>(prefabName);
+
+                if (prefab == null)
+                {
+                    Debug.LogError($"[PungusSouls] FAILED TO LOAD PREFAB: {prefabName}");
+                }
+                else
+                {
+                    Debug.Log($"[PungusSouls] Loaded prefab: {prefabName}");
+                }
+
+                return prefab;
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"[PungusSouls] EXCEPTION LOADING PREFAB: {prefabName}");
+                Debug.LogError(ex);
+                throw;
+            }
+        }
+
+        private static void InstallCrashLogger()
+        {
+            Application.logMessageReceived += (condition, stackTrace, type) =>
+            {
+                try
+                {
+                    string path = Path.Combine(Paths.ConfigPath, "PungusSoulsCrash.log");
+
+                    File.AppendAllText(
+                        path,
+                        $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] {type}\n" +
+                        $"{condition}\n{stackTrace}\n\n");
+                }
+                catch
+                {
+                }
+            };
+        }
         public void Awake()
         {
 
+            InstallCrashLogger();
 
+            try
+            {
+                Debug.Log("[PungusSouls] AWAKE START");
+
+                SafeStep("AssetBundle", () =>
+                {
+                    assetBundle = ItemManager.PrefabManager.RegisterAssetBundle("souls");
+
+                    if (assetBundle == null)
+                        throw new Exception("Asset bundle failed to load");
+                });
+
+                Debug.Log("[PungusSouls] Asset bundle loaded");
+                Debug.Log("[PungusSouls] BEFORE CONFIG");
+                Debug.Log("[PungusSouls] BEFORE Materials");
+                Debug.Log("[PungusSouls] BEFORE ITEM DROP");
+                Debug.Log("[PungusSouls] BEFORE PIECE");
+                Debug.Log("[PungusSouls] BEFORE LOC");
+                Debug.Log("[PungusSouls] BEFORE ARM");
+
+                Debug.Log("[PungusSouls] BEFORE WEP");
+
+                // existing code here
+
+
+
+                assetBundle = ItemManager.PrefabManager.RegisterAssetBundle("souls");
+
+            if (assetBundle == null)
+            {
+                Debug.LogError("Failed to load souls asset bundle");
+                return;
+            }
 
             configFile = base.Config;
             reorderEnabled = configFile.Bind("bone reorder", "enabled", defaultValue: true, new ConfigDescription("", null));
@@ -76,54 +198,247 @@ namespace PungusSouls
             _serverConfigLocked = config("1 - General", "Lock Configuration", Toggle.On,
                 "If on, the configuration is locked and can be changed by server admins only.");
             _ = ConfigSync.AddLockingConfigEntry(_serverConfigLocked);
-
+            Debug.Log("[PungusSouls] AFTER CONFIG");
             #region ItemManager Materials
 
             Item TwinklingTitanite = new("souls", "TwinklingTitanite", "assets");
             TwinklingTitanite.Name.English("Twinkling Titanite"); // You can use this to fix the display name in code
             TwinklingTitanite.Description.English("This weapon-reinforcing titanite is imbued with a particularly powerful energy. After this titanite was peeled from its Slab, it is said that it received a special power, but its specific nature is not clear.");
             TwinklingTitanite.Snapshot();
+            Item TitaniteShard = new("souls", "TitaniteShard", "assets");
+            TitaniteShard.Name.English("Titanite Shard"); // You can use this to fix the display name in code
+            TitaniteShard.Description.English("This weapon-reinforcing titanite is imbued with a particularly powerful energy. After this titanite was peeled from its Slab, it is said that it received a special power, but its specific nature is not clear.");
+            TitaniteShard.Snapshot();
+            Item TitaniteChunk = new("souls", "TitaniteChunk", "assets");
+            TitaniteChunk.Name.English("Titanite Chunk"); // You can use this to fix the display name in code
+            TitaniteChunk.Description.English("This weapon-reinforcing titanite is imbued with a particularly powerful energy. After this titanite was peeled from its Slab, it is said that it received a special power, but its specific nature is not clear.");
+            TitaniteChunk.Snapshot();
+            Item TitaniteSlab = new("souls", "TitaniteSlab", "assets");
+            TitaniteSlab.Name.English("Titanite Slab"); // You can use this to fix the display name in code
+            TitaniteSlab.Description.English("This weapon-reinforcing titanite is imbued with a particularly powerful energy. After this titanite was peeled from its Slab, it is said that it received a special power, but its specific nature is not clear.");
+            TitaniteSlab.Snapshot();
+            Item DemonTitanite = new("souls", "DemonTitanite", "assets");
+            DemonTitanite.Name.English("Demon Titanite"); // You can use this to fix the display name in code
+            DemonTitanite.Description.English("This weapon-reinforcing titanite is imbued with a particularly powerful energy. After this titanite was peeled from its Slab, it is said that it received a special power, but its specific nature is not clear.");
+            DemonTitanite.Snapshot();
+            Item RedTitanite = new("souls", "RedTitanite", "assets");
+            RedTitanite.Name.English("Red Titanite"); // You can use this to fix the display name in code
+            RedTitanite.Description.English("This weapon-reinforcing titanite is imbued with a particularly powerful energy. After this titanite was peeled from its Slab, it is said that it received a special power, but its specific nature is not clear.");
+            RedTitanite.Snapshot();
+            Item BlueTitanite = new("souls", "BlueTitanite", "assets");
+            BlueTitanite.Name.English("Blue Titanite"); // You can use this to fix the display name in code
+            BlueTitanite.Description.English("This weapon-reinforcing titanite is imbued with a particularly powerful energy. After this titanite was peeled from its Slab, it is said that it received a special power, but its specific nature is not clear.");
+            BlueTitanite.Snapshot();
+            Item GreenTitanite = new("souls", "GreenTitanite", "assets");
+            GreenTitanite.Name.English("Green Titanite"); // You can use this to fix the display name in code
+            GreenTitanite.Description.English("This weapon-reinforcing titanite is imbued with a particularly powerful energy. After this titanite was peeled from its Slab, it is said that it received a special power, but its specific nature is not clear.");
+            GreenTitanite.Snapshot();
+            Item LargeTitaniteShard = new("souls", "LargeTitaniteShard", "assets");
+            LargeTitaniteShard.Name.English("Large Titanite Shard"); // You can use this to fix the display name in code
+            LargeTitaniteShard.Description.English("This weapon-reinforcing titanite is imbued with a particularly powerful energy. After this titanite was peeled from its Slab, it is said that it received a special power, but its specific nature is not clear.");
+            LargeTitaniteShard.Snapshot();
+
+            Debug.Log("[PungusSouls] AFTER CONFIG");
             #region Drops
-            TwinklingTitanite.DropsFrom.Add("Boar", .5f, 1, 1);
-            TwinklingTitanite.DropsFrom.Add("Deer", .15f, 1, 1);
-            TwinklingTitanite.DropsFrom.Add("Neck", .7f, 1, 1);
-            TwinklingTitanite.DropsFrom.Add("Greyling", .7f, 1, 1);
-            TwinklingTitanite.DropsFrom.Add("Greydwarf", .12f, 1, 1);
-            TwinklingTitanite.DropsFrom.Add("Greydwarf_Shaman", .15f, 1, 1);
-            TwinklingTitanite.DropsFrom.Add("Greydwarf_Elite", .15f, 1, 1);
-            TwinklingTitanite.DropsFrom.Add("Troll", .20f, 1, 1);
-            TwinklingTitanite.DropsFrom.Add("Skeleton", .17f, 1, 1);
-            TwinklingTitanite.DropsFrom.Add("Blob", .20f, 1, 1);
-            TwinklingTitanite.DropsFrom.Add("Surtling", .20f, 1, 1);
-            TwinklingTitanite.DropsFrom.Add("Leech", .20f, 1, 1);
-            TwinklingTitanite.DropsFrom.Add("Draugr", .20f, 1, 1);
-            TwinklingTitanite.DropsFrom.Add("Draugr_Elite", .20f, 1, 1);
-            TwinklingTitanite.DropsFrom.Add("Wraith", .20f, 1, 1);
-            TwinklingTitanite.DropsFrom.Add("Abomination", .20f, 1, 1);
-            TwinklingTitanite.DropsFrom.Add("Wolf", .25f, 1, 1);
-            TwinklingTitanite.DropsFrom.Add("Hatchling", .25f, 1, 1);
-            TwinklingTitanite.DropsFrom.Add("Deathsquito", .30f, 1, 1);
-            TwinklingTitanite.DropsFrom.Add("Goblin", .35f, 1, 1);
-            TwinklingTitanite.DropsFrom.Add("GoblinBrute", .40f, 1, 1);
-            TwinklingTitanite.DropsFrom.Add("BlobTar", .35f, 1, 1);
-            TwinklingTitanite.DropsFrom.Add("GoblinShaman", .40f, 1, 1);
-            TwinklingTitanite.DropsFrom.Add("Lox", .40f, 1, 1);
+            
+            TitaniteShard.DropsFrom.Add("Greydwarf", .12f, 1, 1);
+            TitaniteShard.DropsFrom.Add("Greydwarf_Shaman", .15f, 1, 1);
+            TitaniteShard.DropsFrom.Add("Greydwarf_Elite", .15f, 1, 1);
+            TitaniteShard.DropsFrom.Add("Troll", .20f, 1, 1);
+            TitaniteShard.DropsFrom.Add("Skeleton_Poison", .15f, 1, 1);
+            TitaniteShard.DropsFrom.Add("Ghost", .15f, 1, 1);
+            LargeTitaniteShard.DropsFrom.Add("Skeleton", .17f, 1, 1);
+            LargeTitaniteShard.DropsFrom.Add("Blob", .20f, 1, 1);
+            LargeTitaniteShard.DropsFrom.Add("BlobElite", .20f, 1, 1);
+            LargeTitaniteShard.DropsFrom.Add("Surtling", .20f, 1, 1);
+            LargeTitaniteShard.DropsFrom.Add("Leech", .20f, 1, 1);
+            LargeTitaniteShard.DropsFrom.Add("Draugr", .20f, 1, 1);
+            LargeTitaniteShard.DropsFrom.Add("Draugr_Elite", .20f, 1, 1);
+            LargeTitaniteShard.DropsFrom.Add("Wraith", .20f, 1, 1);
+            LargeTitaniteShard.DropsFrom.Add("Abomination", .20f, 1, 1);
+            TitaniteChunk.DropsFrom.Add("Wolf", .25f, 1, 1);
+            TitaniteChunk.DropsFrom.Add("Hatchling", .25f, 1, 1);
+            TitaniteChunk.DropsFrom.Add("StoneGolem", .25f, 1, 1);
+            TitaniteChunk.DropsFrom.Add("Fenring", .25f, 1, 1);
+            TitaniteChunk.DropsFrom.Add("Ulv", .25f, 1, 1);
+            TitaniteSlab.DropsFrom.Add("Deathsquito", .30f, 1, 1);
+            TitaniteSlab.DropsFrom.Add("Goblin", .35f, 1, 1);
+            TitaniteSlab.DropsFrom.Add("GoblinBrute", .40f, 1, 1);
+            TitaniteSlab.DropsFrom.Add("BlobTar", .35f, 1, 1);
+            TitaniteSlab.DropsFrom.Add("GoblinShaman", .40f, 1, 1);
+            TitaniteSlab.DropsFrom.Add("Lox", .40f, 1, 1);
+            TitaniteSlab.DropsFrom.Add("GoblinArcher", .35f, 1, 1);
             TwinklingTitanite.DropsFrom.Add("Seeker", .50f, 1, 1);
             TwinklingTitanite.DropsFrom.Add("SeekerBrute", .50f, 1, 1);
             TwinklingTitanite.DropsFrom.Add("Gjall", .50f, 1, 1);
-            TwinklingTitanite.DropsFrom.Add("Eikthyr", 100f, 3, 7);
-            TwinklingTitanite.DropsFrom.Add("gd_king", 100f, 4, 8);
-            TwinklingTitanite.DropsFrom.Add("Bonemass", 100f, 5, 12);
-            TwinklingTitanite.DropsFrom.Add("Dragon", 100f, 7, 13);
-            TwinklingTitanite.DropsFrom.Add("GoblinKing", 100f, 10, 15);
-            TwinklingTitanite.DropsFrom.Add("SeekerQueen", 100f, 12, 16);
-            #endregion
+            TwinklingTitanite.DropsFrom.Add("Dverger", .50f, 1, 1);
+            TwinklingTitanite.DropsFrom.Add("DvergerMage", .50f, 1, 1);
+            DemonTitanite.DropsFrom.Add("Charred_Melee", .50f, 1, 1);
+            DemonTitanite.DropsFrom.Add("Charred_Archer", .50f, 1, 1);
+            DemonTitanite.DropsFrom.Add("Charred_Twitcher", .50f, 1, 1);
+            DemonTitanite.DropsFrom.Add("Volture", .35f, 1, 1);
+            DemonTitanite.DropsFrom.Add("Asksvin", .50f, 1, 1);
+            DemonTitanite.DropsFrom.Add("Morgen", .75f, 1, 1);
+            DemonTitanite.DropsFrom.Add("Fader", 1f, 1, 1);
 
-            #endregion
-            #region PieceManager Example Code
+            Debug.Log("[PungusSouls] AFTER ITEM DROP");
+                #endregion
 
-            // Globally turn off configuration options for your pieces, omit if you don't want to do this.
-            BuildPiece.ConfigurationEnabled = false;
+                #endregion
+                #region ResourceManager
+/*                GameObject titanite_giant_sword_Tier1 = ItemManager.PrefabManager.RegisterPrefab("souls","titanite_giant_sword_Tier1");
+                ResourceSpawnManager.Register(
+                    new ResourceSpawnDefinition
+                    {
+                        Prefab = titanite_giant_sword_Tier1,
+
+                        Biome = Heightmap.Biome.BlackForest,
+
+                        MinPerZone = 1,
+                        MaxPerZone = 2,
+
+                        MinTilt = 0,
+                        MaxTilt = 30,
+
+                        InForest = true,
+                        ForestThresholdMin = 0.5f,
+
+                        GroupSizeMin = 1,
+                        GroupSizeMax = 2,
+                        GroupRadius = 30f
+                    });
+                GameObject titanite_giant_sword_Tier2 = ItemManager.PrefabManager.RegisterPrefab("souls","titanite_giant_sword_Tier2");
+                ResourceSpawnManager.Register(
+                    new ResourceSpawnDefinition
+                    {
+                        Prefab = titanite_giant_sword_Tier2,
+
+                        Biome = Heightmap.Biome.Swamp,
+
+                        MinPerZone = 1,
+                        MaxPerZone = 2,
+
+                        MinTilt = 0,
+                        MaxTilt = 30,
+
+                        InForest = true,
+                        ForestThresholdMin = 0.5f,
+
+                        GroupSizeMin = 1,
+                        GroupSizeMax = 2,
+                        GroupRadius = 30f
+                    });
+                GameObject titanite_giant_helmet_tier1 = ItemManager.PrefabManager.RegisterPrefab("souls","titanite_giant_helmet_tier1");
+                ResourceSpawnManager.Register(
+                    new ResourceSpawnDefinition
+                    {
+                        Prefab = titanite_giant_helmet_tier1,
+
+                        Biome = Heightmap.Biome.BlackForest,
+
+                        MinPerZone = 1,
+                        MaxPerZone = 2,
+
+                        MinTilt = 0,
+                        MaxTilt = 30,
+
+                        InForest = true,
+                        ForestThresholdMin = 0.5f,
+
+                        GroupSizeMin = 1,
+                        GroupSizeMax = 2,
+                        GroupRadius = 30f
+                    });
+                GameObject titanite_giant_helmet_tier2 = ItemManager.PrefabManager.RegisterPrefab("souls","titanite_giant_helmet_tier2");
+                ResourceSpawnManager.Register(
+                    new ResourceSpawnDefinition
+                    {
+                        Prefab = titanite_giant_helmet_tier2,
+
+                        Biome = Heightmap.Biome.Swamp,
+
+                        MinPerZone = 1,
+                        MaxPerZone = 2,
+
+                        MinTilt = 0,
+                        MaxTilt = 30,
+
+                        InForest = true,
+                        ForestThresholdMin = 0.5f,
+
+                        GroupSizeMin = 1,
+                        GroupSizeMax = 2,
+                        GroupRadius = 30f
+                    });
+                GameObject titanite_giant_skull_tier3 = ItemManager.PrefabManager.RegisterPrefab("souls","titanite_giant_skull_tier3");
+                ResourceSpawnManager.Register(
+                    new ResourceSpawnDefinition
+                    {
+                        Prefab = titanite_giant_skull_tier3,
+                        Biome = Heightmap.Biome.Mountain,
+
+                        MinPerZone = 1,
+                        MaxPerZone = 2,
+
+                        MinTilt = 0,
+                        MaxTilt = 30,
+
+                        InForest = true,
+                        ForestThresholdMin = 0.5f,
+
+                        GroupSizeMin = 1,
+                        GroupSizeMax = 2,
+                        GroupRadius = 30f
+                    });
+                GameObject Titanite_Giant_Ribs_tier5 = ItemManager.PrefabManager.RegisterPrefab("souls","Titanite_Giant_Ribs_tier5");
+                ResourceSpawnManager.Register(
+                    new ResourceSpawnDefinition
+                    {
+                        Prefab = Titanite_Giant_Ribs_tier5,
+
+                        Biome = Heightmap.Biome.Plains,
+
+                        MinPerZone = 1,
+                        MaxPerZone = 2,
+
+                        MinTilt = 0,
+                        MaxTilt = 30,
+
+                        InForest = true,
+                        ForestThresholdMin = 0.5f,
+
+                        GroupSizeMin = 1,
+                        GroupSizeMax = 2,
+                        GroupRadius = 30f
+                    });
+                GameObject titanite_vein_1 = ItemManager.PrefabManager.RegisterPrefab("souls","titanite_vein_1");
+                ResourceSpawnManager.Register(
+                    new ResourceSpawnDefinition
+                    {
+                        Prefab = titanite_vein_1,
+
+                        Biome = Heightmap.Biome.AshLands,
+
+                        MinPerZone = 1,
+                        MaxPerZone = 2,
+
+                        MinTilt = 0,
+                        MaxTilt = 30,
+
+                        InForest = true,
+                        ForestThresholdMin = 0.5f,
+
+                        GroupSizeMin = 1,
+                        GroupSizeMax = 1,
+                        GroupRadius = 30f
+                    });*/
+
+                #endregion ResourceManager
+
+                #region PieceManager Example Code
+
+                // Globally turn off configuration options for your pieces, omit if you don't want to do this.
+                BuildPiece.ConfigurationEnabled = false;
 
             PiecePrefabManager.RegisterPrefab("souls", "BlacksmithAltar");
             PiecePrefabManager.RegisterPrefab("souls", "SweetShalquoir_Piece");
@@ -187,7 +502,7 @@ namespace PungusSouls
             Bonefire.Category.Set(PieceManager.BuildPieceCategory.Crafting);
             Bonefire.Crafting.Set("BlacksmithAltar"); // Set a crafting station requirement for the piece.
             Bonefire.Snapshot();
-
+                Debug.Log("[PungusSouls] AFTER PIECE");
             #endregion
             #region SkillManager Example Code
             /*
@@ -221,33 +536,7 @@ namespace PungusSouls
 
             };
 
-            LocationManager.Location Bonfire_Loc = new("souls", "PS_Bonfire_Loc")
-            {
-                Biome = Heightmap.Biome.Meadows,
-                SpawnArea = Heightmap.BiomeArea.Median,
-                HeightDelta = new Range(0, 12),
-                SpawnDistance = new Range(0, 60),
-                SpawnAltitude = new Range(0, 100),
-                Count = 0,
-                Prioritize = true,
-                Unique = true
-            };
-            BonfirePrefab = Bonfire_Loc.Prefab;
-            Transform bonfire =
-            Bonfire_Loc.Prefab.transform.Find("Bonfire");
-
-            if (bonfire != null)
-            {
-                Debug.Log("Found bonfire, adding controller");
-                bonfire.gameObject.AddComponent<BonfireController>();
-            }
-
-            else
-            {
-                Debug.LogError("Could not find bonfire object");
-            }
-
-
+            Debug.Log("[PungusSouls] AFTER LOC");
             #endregion Location Manager
 
             #region StatusEffectManager
@@ -267,7 +556,7 @@ namespace PungusSouls
             SetEffect_HavelSet.Effect.m_tooltip = "<color=orange>The Strength of Havel the Rock</color>";
             CustomSE lightningbuff = new("souls", "SE_Lightningbuff");
             lightningbuff.Name.English("Sunlight Blade");
-
+            Debug.Log("[PungusSouls] AFTER SE");
             #endregion StatusEffectManager
 
             #region ItemManager
@@ -389,7 +678,7 @@ namespace PungusSouls
             HavelChest.RequiredUpgradeItems.Add("DragonTear", 2);
             HavelChest.RequiredUpgradeItems.Add("TwinklingTitanite", 2);
             HavelChest.RequiredUpgradeItems.Add("BlackMetal", 2);
-
+            Debug.Log("[PungusSouls] AFTER ARM");
             #endregion Armor
             #region Weapons
             #region Tier 1 (Forest)
@@ -399,11 +688,11 @@ namespace PungusSouls
             StaffWood.Description.English("Catalyst belonging to Beatrice, the rogue witch. Contrasts with Vinheim catalysts. This ancient catalyst shows signs of being used for age-old sorceries. It has passed the hands of many generations to get here.");
             StaffWood.Crafting.Add("BlacksmithAltar", 1); // Custom crafting stations can be specified as a string
             StaffWood.RequiredItems.Add("Wood", 40);
-            StaffWood.RequiredItems.Add("TwinklingTitanite", 10);
+            StaffWood.RequiredItems.Add("TitaniteShard", 10);
             StaffWood.RequiredItems.Add("GreydwarfEye", 20);
             StaffWood.RequiredItems.Add("HardAntler", 5);
             StaffWood.RequiredUpgradeItems.Add("Wood", 10);
-            StaffWood.RequiredUpgradeItems.Add("TwinklingTitanite", 2);
+            StaffWood.RequiredUpgradeItems.Add("TitaniteShard", 2);
             StaffWood.RequiredUpgradeItems.Add("GreydwarfEye", 5);
             StaffWood.RequiredUpgradeItems.Add("HardAntler", 5);
 
@@ -414,35 +703,35 @@ namespace PungusSouls
             sunshield1.RequiredItems.Add("Bronze", 25);
             sunshield1.RequiredItems.Add("Amber", 10);
             sunshield1.RequiredItems.Add("BronzeNails", 20);
-            sunshield1.RequiredItems.Add("TwinklingTitanite", 10);
+            sunshield1.RequiredItems.Add("TitaniteShard", 10);
             sunshield1.RequiredUpgradeItems.Add("Bronze", 10);
             sunshield1.RequiredUpgradeItems.Add("Amber", 5);
             sunshield1.RequiredUpgradeItems.Add("BronzeNails", 5);
-            sunshield1.RequiredUpgradeItems.Add("TwinklingTitanite", 10);
+            sunshield1.RequiredUpgradeItems.Add("TitaniteShard", 10);
 
             Item SunlightSword = new("souls", "SunlightSword", "assets");
             SunlightSword.Name.English("Sunlight StraightSword"); // You can use this to fix the display name in code
             SunlightSword.Description.English("This standard longsword, belonging to Solaire of Astora, is of high quality, is well-forged, and has been kept in good repair. Easy to use and dependable, but unlikely to live up to its grandiose name.");
             SunlightSword.Crafting.Add("BlacksmithAltar", 1); // Custom crafting stations can be specified as a string
-            SunlightSword.RequiredItems.Add("TwinklingTitanite", 10);
+            SunlightSword.RequiredItems.Add("TitaniteShard", 10);
             SunlightSword.RequiredItems.Add("FineWood", 10);
             SunlightSword.RequiredItems.Add("TrophyGreydwarf", 5);
             SunlightSword.RequiredItems.Add("Bronze", 25);
             SunlightSword.RequiredUpgradeItems.Add("Bronze", 10);
             SunlightSword.RequiredUpgradeItems.Add("FineWood", 10);
             SunlightSword.RequiredUpgradeItems.Add("TrophyGreydwarf", 1);
-            SunlightSword.RequiredUpgradeItems.Add("TwinklingTitanite", 10);
+            SunlightSword.RequiredUpgradeItems.Add("TitaniteShard", 10);
 
             Item ChannelerTrident = new("souls", "ChannelerTrident", "assets");
             ChannelerTrident.Name.English("Channeler Trident"); // You can use this to fix the display name in code
             ChannelerTrident.Description.English("Trident of the Six-eyed Channelers, sorcerers who serve Seath the Scaleless in collecting human specimens. Thrusted in circular motions in a unique martial arts dance that stirs nearby allies into a bloodthirsty frenzy.");
             ChannelerTrident.Crafting.Add("BlacksmithAltar", 1); // Custom crafting stations can be specified as a string
             ChannelerTrident.RequiredItems.Add("Bronze", 25);
-            ChannelerTrident.RequiredItems.Add("TwinklingTitanite", 5);
+            ChannelerTrident.RequiredItems.Add("TitaniteShard", 5);
             ChannelerTrident.RequiredItems.Add("Tin", 20);
             ChannelerTrident.RequiredItems.Add("GreydwarfEye", 20);
             ChannelerTrident.RequiredUpgradeItems.Add("Bronze", 10);
-            ChannelerTrident.RequiredUpgradeItems.Add("TwinklingTitanite", 2);
+            ChannelerTrident.RequiredUpgradeItems.Add("TitaniteShard", 2);
             ChannelerTrident.RequiredUpgradeItems.Add("Tin", 10);
             ChannelerTrident.RequiredUpgradeItems.Add("GreydwarfEye", 5);
 
@@ -455,7 +744,7 @@ namespace PungusSouls
             BerserkGreatsword.Crafting.Add("BlacksmithAltar", 1); // Custom crafting stations can be specified as a string
             BerserkGreatsword.RequiredItems.Add("Bronze", 20);
             BerserkGreatsword.RequiredItems.Add("RoundLog", 10);
-            BerserkGreatsword.RequiredItems.Add("TwinklingTitanite", 5);
+            BerserkGreatsword.RequiredItems.Add("TitaniteShard", 5);
             BerserkGreatsword.RequiredItems.Add("TrophyGreydwarfBrute", 20);
             BerserkGreatsword.RequiredUpgradeItems.Add("Bronze", 10);
             BerserkGreatsword.RequiredUpgradeItems.Add("RoundLog", 10);
@@ -466,11 +755,11 @@ namespace PungusSouls
             DrakeSword.Name.English("Drake Sword"); // You can use this to fix the display name in code
             DrakeSword.Description.English("This sword, one of the rare dragon weapons, is formed by a drake's tail. Drakes are seen as undeveloped imitators of the dragons, but they are likely their distant kin.\r\nThe sword is imbued with a mystical power, to be released when held with both hands.");
             DrakeSword.Crafting.Add("BlacksmithAltar", 1); // Custom crafting stations can be specified as a string
-            DrakeSword.RequiredItems.Add("TwinklingTitanite", 20);
+            DrakeSword.RequiredItems.Add("TitaniteShard", 20);
             DrakeSword.RequiredItems.Add("Stone", 20);
             DrakeSword.RequiredItems.Add("Wood", 40);
             DrakeSword.RequiredItems.Add("Flint", 1);
-            DrakeSword.RequiredUpgradeItems.Add("TwinklingTitanite", 5);
+            DrakeSword.RequiredUpgradeItems.Add("TitaniteShard", 5);
             DrakeSword.RequiredUpgradeItems.Add("Wood", 10);
             DrakeSword.RequiredUpgradeItems.Add("Flint", 20);
 
@@ -481,22 +770,22 @@ namespace PungusSouls
             GrassCrestShield.RequiredItems.Add("Dandelion", 25);
             GrassCrestShield.RequiredItems.Add("FineWood", 20);
             GrassCrestShield.RequiredItems.Add("Resin", 15);
-            GrassCrestShield.RequiredItems.Add("TwinklingTitanite", 5);
+            GrassCrestShield.RequiredItems.Add("TitaniteShard", 5);
             GrassCrestShield.RequiredUpgradeItems.Add("Dandelion", 2);
             GrassCrestShield.RequiredUpgradeItems.Add("FineWood", 5);
             GrassCrestShield.RequiredUpgradeItems.Add("Resin", 5);
-            GrassCrestShield.RequiredUpgradeItems.Add("TwinklingTitanite", 2);
+            GrassCrestShield.RequiredUpgradeItems.Add("TitaniteShard", 2);
 
             Item MLHorn = new("souls", "MLHorn", "assets");
             MLHorn.Name.English("Moonlight Butterfly Horn"); // You can use this to fix the display name in code
             MLHorn.Description.English("Weapon born from the mystical creature of the Darkroot Garden, the Moonlight Butterfly. The horns of the butterfly, a being created by Seath, are imbued with a pure magic power.");
             MLHorn.Crafting.Add("BlacksmithAltar", 1); // Custom crafting stations can be specified as a string
             MLHorn.RequiredItems.Add("AncientSeed", 30);
-            MLHorn.RequiredItems.Add("TwinklingTitanite", 10);
+            MLHorn.RequiredItems.Add("TitaniteShard", 10);
             MLHorn.RequiredItems.Add("GreydwarfEye", 20);
             MLHorn.RequiredItems.Add("FineWood", 10);
             MLHorn.RequiredUpgradeItems.Add("AncientSeed", 10);
-            MLHorn.RequiredUpgradeItems.Add("TwinklingTitanite", 2);
+            MLHorn.RequiredUpgradeItems.Add("TitaniteShard", 2);
             MLHorn.RequiredUpgradeItems.Add("GreydwarfEye", 10);
             MLHorn.RequiredUpgradeItems.Add("FineWood", 5);
 
@@ -507,11 +796,11 @@ namespace PungusSouls
             GoldTracer.RequiredItems.Add("Bronze", 40);
             GoldTracer.RequiredItems.Add("Coins", 99);
             GoldTracer.RequiredItems.Add("Ruby", 40);
-            GoldTracer.RequiredItems.Add("TwinklingTitanite", 20);
+            GoldTracer.RequiredItems.Add("TitaniteShard", 20);
             GoldTracer.RequiredUpgradeItems.Add("Bronze", 10);
             GoldTracer.RequiredUpgradeItems.Add("Coins", 10);
             GoldTracer.RequiredUpgradeItems.Add("Ruby", 5);
-            GoldTracer.RequiredUpgradeItems.Add("TwinklingTitanite", 2);
+            GoldTracer.RequiredUpgradeItems.Add("TitaniteShard", 2);
 
 
             Item DarkMoonBow = new("souls", "DarkMoonBow", "assets");
@@ -521,11 +810,11 @@ namespace PungusSouls
             DarkMoonBow.RequiredItems.Add("FineWood", 40);
             DarkMoonBow.RequiredItems.Add("Iron", 20);
             DarkMoonBow.RequiredItems.Add("GreydwarfEye", 10);
-            DarkMoonBow.RequiredItems.Add("TwinklingTitanite", 12);
+            DarkMoonBow.RequiredItems.Add("TitaniteShard", 12);
             DarkMoonBow.RequiredUpgradeItems.Add("FineWood", 10);
             DarkMoonBow.RequiredUpgradeItems.Add("Iron", 5);
             DarkMoonBow.RequiredUpgradeItems.Add("GreydwarfEye", 5);
-            DarkMoonBow.RequiredUpgradeItems.Add("TwinklingTitanite", 4);
+            DarkMoonBow.RequiredUpgradeItems.Add("TitaniteShard", 4);
 
             Item MaskOfFather = new("souls", "MaskOfFather", "assets");
             MaskOfFather.Name.English("Mask of the Father"); // You can use this to fix the display name in code
@@ -533,11 +822,11 @@ namespace PungusSouls
             MaskOfFather.Crafting.Add("BlacksmithAltar", 1); // Custom crafting stations can be specified as a string
             MaskOfFather.RequiredItems.Add("FineWood", 40);
             MaskOfFather.RequiredItems.Add("GreydwarfEye", 20);
-            MaskOfFather.RequiredItems.Add("TwinklingTitanite", 10);
+            MaskOfFather.RequiredItems.Add("TitaniteShard", 10);
             MaskOfFather.RequiredItems.Add("Bronze", 20);
             MaskOfFather.RequiredUpgradeItems.Add("FineWood", 10);
             MaskOfFather.RequiredUpgradeItems.Add("GreydwarfEye", 2);
-            MaskOfFather.RequiredUpgradeItems.Add("TwinklingTitanite", 2);
+            MaskOfFather.RequiredUpgradeItems.Add("TitaniteShard", 2);
             MaskOfFather.RequiredUpgradeItems.Add("Bronze", 5);
 
             Item DragonKingGreatAxe = new("souls", "DragonKingGreatAxe", "assets");
@@ -545,13 +834,13 @@ namespace PungusSouls
             DragonKingGreatAxe.Description.English("This axe, one of the rare dragon weapons, is formed by the tail of the Gaping Dragon, a distant, deformed descendant of the everlasting dragons.");
             DragonKingGreatAxe.Crafting.Add("BlacksmithAltar", 1); // Custom crafting stations can be specified as a string
             DragonKingGreatAxe.RequiredItems.Add("Stone", 120);
-            DragonKingGreatAxe.RequiredItems.Add("TwinklingTitanite", 5);
+            DragonKingGreatAxe.RequiredItems.Add("TitaniteShard", 5);
             DragonKingGreatAxe.RequiredItems.Add("Silver", 40);
             DragonKingGreatAxe.RequiredItems.Add("DragonEgg", 4);
             DragonKingGreatAxe.RequiredUpgradeItems.Add("Stone", 60);
             DragonKingGreatAxe.RequiredUpgradeItems.Add("Silver", 20);
             DragonKingGreatAxe.RequiredUpgradeItems.Add("DragonEgg", 1);
-            DragonKingGreatAxe.RequiredUpgradeItems.Add("TwinklingTitanite", 1);
+            DragonKingGreatAxe.RequiredUpgradeItems.Add("TitaniteShard", 1);
 
             #endregion Tier 2 (Swamps)
             #region Tier 3 (Mountains)
@@ -563,11 +852,11 @@ namespace PungusSouls
             DragonGreatSword.RequiredItems.Add("Stone", 120);
             DragonGreatSword.RequiredItems.Add("TrophyDragonQueen", 2);
             DragonGreatSword.RequiredItems.Add("Silver", 40);
-            DragonGreatSword.RequiredItems.Add("TwinklingTitanite", 20);
+            DragonGreatSword.RequiredItems.Add("TitaniteChunk", 20);
             DragonGreatSword.RequiredUpgradeItems.Add("Stone", 60);
             DragonGreatSword.RequiredUpgradeItems.Add("TrophyDragonQueen", 2);
             DragonGreatSword.RequiredUpgradeItems.Add("Silver", 20);
-            DragonGreatSword.RequiredUpgradeItems.Add("TwinklingTitanite", 5);
+            DragonGreatSword.RequiredUpgradeItems.Add("TitaniteChunk", 5);
 
             Item Avelyn = new("souls", "Avelyn", "assets");
             Avelyn.Name.English("Avelyn"); // You can use this to fix the display name in code
@@ -575,22 +864,22 @@ namespace PungusSouls
             Avelyn.Crafting.Add("BlacksmithAltar", 1); // Custom crafting stations can be specified as a string
             Avelyn.RequiredItems.Add("Wood", 20);
             Avelyn.RequiredItems.Add("Iron", 10);
-            Avelyn.RequiredItems.Add("TwinklingTitanite", 10);
+            Avelyn.RequiredItems.Add("TitaniteChunk", 10);
             Avelyn.RequiredItems.Add("Root", 8);
             Avelyn.RequiredUpgradeItems.Add("Wood", 5);
             Avelyn.RequiredUpgradeItems.Add("Iron", 2);
-            Avelyn.RequiredUpgradeItems.Add("TwinklingTitanite", 2);
+            Avelyn.RequiredUpgradeItems.Add("TitaniteChunk", 2);
             Avelyn.RequiredUpgradeItems.Add("Root", 2);
 
             Item DaggerPrisc = new("souls", "DaggerPrisc", "assets");
             DaggerPrisc.Name.English("Priscillas Dagger"); // You can use this to fix the display name in code
             DaggerPrisc.Description.English("This sword, one of the rare dragon weapons, came from the tail of Priscilla, the Dragon Crossbreed in the painted world of Ariamis.\r\nPossessing the power of lifehunt, it dances about when wielded, in a fashion reminiscent of the white-robed painting guardians.");
             DaggerPrisc.Crafting.Add("BlacksmithAltar", 1); // Custom crafting stations can be specified as a string
-            DaggerPrisc.RequiredItems.Add("TwinklingTitanite", 12);
+            DaggerPrisc.RequiredItems.Add("TitaniteChunk", 12);
             DaggerPrisc.RequiredItems.Add("Bloodbag", 20);
             DaggerPrisc.RequiredItems.Add("KnifeChitin", 1);
             DaggerPrisc.RequiredItems.Add("TrophyLeech", 5);
-            DaggerPrisc.RequiredUpgradeItems.Add("TwinklingTitanite", 2);
+            DaggerPrisc.RequiredUpgradeItems.Add("TitaniteChunk", 2);
             DaggerPrisc.RequiredUpgradeItems.Add("Bloodbag", 10);
             DaggerPrisc.RequiredUpgradeItems.Add("KnifeChitin", 1);
             DaggerPrisc.RequiredUpgradeItems.Add("TrophyLeech", 5);
@@ -600,11 +889,11 @@ namespace PungusSouls
             Glordsword.Description.English("Sword wielded only by servants of Gravelord Nito, the first of the dead. Crafted from the bones of the fallen. The miasma of death exudes from the sword, a veritable toxin to any living being.");
             Glordsword.Crafting.Add("BlacksmithAltar", 1); // Custom crafting stations can be specified as a string
             Glordsword.RequiredItems.Add("WitheredBone", 30);
-            Glordsword.RequiredItems.Add("TwinklingTitanite", 20);
+            Glordsword.RequiredItems.Add("TitaniteChunk", 20);
             Glordsword.RequiredItems.Add("Ooze", 20);
             Glordsword.RequiredItems.Add("Guck", 20);
             Glordsword.RequiredUpgradeItems.Add("WitheredBone", 3);
-            Glordsword.RequiredUpgradeItems.Add("TwinklingTitanite", 3);
+            Glordsword.RequiredUpgradeItems.Add("TitaniteChunk", 3);
             Glordsword.RequiredUpgradeItems.Add("Ooze", 5);
             Glordsword.RequiredUpgradeItems.Add("Guck", 5);
 
@@ -615,11 +904,11 @@ namespace PungusSouls
             ManusCatalyst.RequiredItems.Add("FineWood", 40);
             ManusCatalyst.RequiredItems.Add("TrophyWraith", 5);
             ManusCatalyst.RequiredItems.Add("SurtlingCore", 10);
-            ManusCatalyst.RequiredItems.Add("TwinklingTitanite", 20);
+            ManusCatalyst.RequiredItems.Add("TitaniteChunk", 20);
             ManusCatalyst.RequiredUpgradeItems.Add("FineWood", 10);
             ManusCatalyst.RequiredUpgradeItems.Add("TrophyWraith", 1);
             ManusCatalyst.RequiredUpgradeItems.Add("SurtlingCore", 2);
-            ManusCatalyst.RequiredUpgradeItems.Add("TwinklingTitanite", 5);
+            ManusCatalyst.RequiredUpgradeItems.Add("TitaniteChunk", 5);
 
             Item FurySword = new("souls", "FurySword", "assets");
             FurySword.Name.English("Quelags Fury Sword"); // You can use this to fix the display name in code
@@ -628,11 +917,11 @@ namespace PungusSouls
             FurySword.RequiredItems.Add("Bronze", 30);
             FurySword.RequiredItems.Add("SurtlingCore", 20);
             FurySword.RequiredItems.Add("Chitin", 40);
-            FurySword.RequiredItems.Add("TwinklingTitanite", 15);
+            FurySword.RequiredItems.Add("TitaniteChunk", 15);
             FurySword.RequiredUpgradeItems.Add("Bronze", 10);
             FurySword.RequiredUpgradeItems.Add("SurtlingCore", 5);
             FurySword.RequiredUpgradeItems.Add("Chitin", 20);
-            FurySword.RequiredUpgradeItems.Add("TwinklingTitanite", 4);
+            FurySword.RequiredUpgradeItems.Add("TitaniteChunk", 4);
 
             Item DemonGreatHammer = new("souls", "DemonGreatHammer", "assets");
             DemonGreatHammer.Name.English("Demon Great Hammer"); // You can use this to fix the display name in code
@@ -640,10 +929,10 @@ namespace PungusSouls
             DemonGreatHammer.Crafting.Add("BlacksmithAltar", 1); // Custom crafting stations can be specified as a string
             DemonGreatHammer.RequiredItems.Add("Stone", 120);
             DemonGreatHammer.RequiredItems.Add("SledgeStagbreaker", 1);
-            DemonGreatHammer.RequiredItems.Add("TwinklingTitanite", 8);
+            DemonGreatHammer.RequiredItems.Add("TitaniteChunk", 8);
             DemonGreatHammer.RequiredItems.Add("Ruby", 20);
             DemonGreatHammer.RequiredUpgradeItems.Add("Stone", 50);
-            DemonGreatHammer.RequiredUpgradeItems.Add("TwinklingTitanite", 2);
+            DemonGreatHammer.RequiredUpgradeItems.Add("TitaniteChunk", 2);
             DemonGreatHammer.RequiredUpgradeItems.Add("Ruby", 3);
 
             #endregion Tier 3 (Mountains)
@@ -656,21 +945,21 @@ namespace PungusSouls
             HavelGreatShield.RequiredItems.Add("Stone", 50);
             HavelGreatShield.RequiredItems.Add("Iron", 20);
             HavelGreatShield.RequiredItems.Add("Wood", 15);
-            HavelGreatShield.RequiredItems.Add("TwinklingTitanite", 10);
+            HavelGreatShield.RequiredItems.Add("TitaniteChunk", 10);
             HavelGreatShield.RequiredUpgradeItems.Add("Stone", 20);
             HavelGreatShield.RequiredUpgradeItems.Add("Iron", 5);
             HavelGreatShield.RequiredUpgradeItems.Add("Wood", 5);
-            HavelGreatShield.RequiredUpgradeItems.Add("TwinklingTitanite", 2);
+            HavelGreatShield.RequiredUpgradeItems.Add("TitaniteChunk", 2);
 
             Item DarkSilverTracer = new("souls", "DarkSilverTracer", "assets");
             DarkSilverTracer.Name.English("Dark Silver Tracer"); // You can use this to fix the display name in code
             DarkSilverTracer.Description.English("A dark silver dagger used by the Lord's Blade Ciaran, of Gwyn's Four Knights. The victim is first distracted by dazzling streaks of the Gold Tracer, then stung by the vicious poison of this dagger");
             DarkSilverTracer.Crafting.Add("BlacksmithAltar", 1); // Custom crafting stations can be specified as a string
-            DarkSilverTracer.RequiredItems.Add("TwinklingTitanite", 10);
+            DarkSilverTracer.RequiredItems.Add("TitaniteChunk", 10);
             DarkSilverTracer.RequiredItems.Add("Ooze", 20);
             DarkSilverTracer.RequiredItems.Add("Iron", 5);
             DarkSilverTracer.RequiredItems.Add("FineWood", 5);
-            DarkSilverTracer.RequiredUpgradeItems.Add("TwinklingTitanite", 2);
+            DarkSilverTracer.RequiredUpgradeItems.Add("TitaniteChunk", 2);
             DarkSilverTracer.RequiredUpgradeItems.Add("Ooze", 5);
             DarkSilverTracer.RequiredUpgradeItems.Add("Iron", 1);
 
@@ -679,11 +968,11 @@ namespace PungusSouls
             DragonSlayerGreatBow.Description.English("Bow of the Dragonslayers, led by Hawkeye Gough, one of Gwyn's Four Knights. This bow's unusual size requires that it be anchored to the ground when fired. Only uses specialized great arrows.");
             DragonSlayerGreatBow.Crafting.Add("BlacksmithAltar", 1); // Custom crafting stations can be specified as a string
             DragonSlayerGreatBow.RequiredItems.Add("Silver", 50);
-            DragonSlayerGreatBow.RequiredItems.Add("TwinklingTitanite", 20);
+            DragonSlayerGreatBow.RequiredItems.Add("TitaniteChunk", 20);
             DragonSlayerGreatBow.RequiredItems.Add("Chain", 10);
             DragonSlayerGreatBow.RequiredItems.Add("RoundLog", 30);
             DragonSlayerGreatBow.RequiredUpgradeItems.Add("Silver", 25);
-            DragonSlayerGreatBow.RequiredUpgradeItems.Add("TwinklingTitanite", 10);
+            DragonSlayerGreatBow.RequiredUpgradeItems.Add("TitaniteChunk", 10);
             DragonSlayerGreatBow.RequiredUpgradeItems.Add("Chain", 2);
             DragonSlayerGreatBow.RequiredUpgradeItems.Add("RoundLog", 10);
 
@@ -694,11 +983,11 @@ namespace PungusSouls
             DragonSlayerSpear.RequiredItems.Add("Iron", 40);
             DragonSlayerSpear.RequiredItems.Add("Thunderstone", 20);
             DragonSlayerSpear.RequiredItems.Add("Silver", 40);
-            DragonSlayerSpear.RequiredItems.Add("TwinklingTitanite", 20);
+            DragonSlayerSpear.RequiredItems.Add("TitaniteChunk", 20);
             DragonSlayerSpear.RequiredUpgradeItems.Add("Iron", 25);
             DragonSlayerSpear.RequiredUpgradeItems.Add("Thunderstone", 5);
             DragonSlayerSpear.RequiredUpgradeItems.Add("Silver", 25);
-            DragonSlayerSpear.RequiredUpgradeItems.Add("TwinklingTitanite", 10);
+            DragonSlayerSpear.RequiredUpgradeItems.Add("TitaniteChunk", 10);
 
             Item AbyssGreatsword = new("souls", "AbyssGreatsword", "assets");
             AbyssGreatsword.Name.English("Abyss Greatsword"); // You can use this to fix the display name in code
@@ -706,22 +995,22 @@ namespace PungusSouls
             AbyssGreatsword.Crafting.Add("BlacksmithAltar", 1); // Custom crafting stations can be specified as a string
             AbyssGreatsword.RequiredItems.Add("Silver", 40);
             AbyssGreatsword.RequiredItems.Add("Eitr", 20);
-            AbyssGreatsword.RequiredItems.Add("TwinklingTitanite", 20);
+            AbyssGreatsword.RequiredItems.Add("TitaniteChunk", 20);
             AbyssGreatsword.RequiredItems.Add("TrophyWolf", 1);
             AbyssGreatsword.RequiredUpgradeItems.Add("Silver", 20);
             AbyssGreatsword.RequiredUpgradeItems.Add("Eitr", 10);
-            AbyssGreatsword.RequiredUpgradeItems.Add("TwinklingTitanite", 5);
+            AbyssGreatsword.RequiredUpgradeItems.Add("TitaniteChunk", 5);
             AbyssGreatsword.RequiredUpgradeItems.Add("TrophyWolf", 1);
 
             Item dragontooth = new("souls", "dragontooth", "assets");
             dragontooth.Name.English("Dragon Tooth"); // You can use this to fix the display name in code
             dragontooth.Description.English("Created from an everlasting dragon tooth. Legendary great hammer of Havel the Rock. The dragon tooth will never break as it is harder than stone, and it grants its wielder resistance to magic and flame");
             dragontooth.Crafting.Add("BlacksmithAltar", 1); // Custom crafting stations can be specified as a string
-            dragontooth.RequiredItems.Add("TwinklingTitanite", 20);
+            dragontooth.RequiredItems.Add("TitaniteChunk", 20);
             dragontooth.RequiredItems.Add("Stone", 120);
             dragontooth.RequiredItems.Add("YmirRemains", 25);
             dragontooth.RequiredItems.Add("BoneFragments", 50);
-            dragontooth.RequiredUpgradeItems.Add("TwinklingTitanite", 10);
+            dragontooth.RequiredUpgradeItems.Add("TitaniteChunk", 10);
             dragontooth.RequiredUpgradeItems.Add("Stone", 50);
             dragontooth.RequiredUpgradeItems.Add("YmirRemains", 10);
             dragontooth.RequiredUpgradeItems.Add("BoneFragments", 20);
@@ -736,11 +1025,11 @@ namespace PungusSouls
             BlackKnightGreatAxe.RequiredItems.Add("BlackMetal", 20);
             BlackKnightGreatAxe.RequiredItems.Add("Flametal", 10);
             BlackKnightGreatAxe.RequiredItems.Add("Silver", 20);
-            BlackKnightGreatAxe.RequiredItems.Add("TwinklingTitanite", 20);
+            BlackKnightGreatAxe.RequiredItems.Add("TitaniteSlab", 20);
             BlackKnightGreatAxe.RequiredUpgradeItems.Add("BlackMetal", 10);
             BlackKnightGreatAxe.RequiredUpgradeItems.Add("Flametal", 10);
             BlackKnightGreatAxe.RequiredUpgradeItems.Add("Silver", 10);
-            BlackKnightGreatAxe.RequiredUpgradeItems.Add("TwinklingTitanite", 10);
+            BlackKnightGreatAxe.RequiredUpgradeItems.Add("TitaniteSlab", 10);
 
             Item BlackKnightHalberd = new("souls", "BlackKnightHalberd", "assets");
             BlackKnightHalberd.Name.English("Black Knight Halberd"); // You can use this to fix the display name in code
@@ -749,11 +1038,11 @@ namespace PungusSouls
             BlackKnightHalberd.RequiredItems.Add("BlackMetal", 20);
             BlackKnightHalberd.RequiredItems.Add("Flametal", 10);
             BlackKnightHalberd.RequiredItems.Add("Silver", 20);
-            BlackKnightHalberd.RequiredItems.Add("TwinklingTitanite", 10);
+            BlackKnightHalberd.RequiredItems.Add("TitaniteSlab", 10);
             BlackKnightHalberd.RequiredUpgradeItems.Add("BlackMetal", 10);
             BlackKnightHalberd.RequiredUpgradeItems.Add("Flametal", 10);
             BlackKnightHalberd.RequiredUpgradeItems.Add("Silver", 10);
-            BlackKnightHalberd.RequiredUpgradeItems.Add("TwinklingTitanite", 10);
+            BlackKnightHalberd.RequiredUpgradeItems.Add("TitaniteSlab", 10);
 
             Item BlackKnightSword = new("souls", "BlackKnightSword", "assets");
             BlackKnightSword.Name.English("Black Knight Sword"); // You can use this to fix the display name in code
@@ -762,11 +1051,11 @@ namespace PungusSouls
             BlackKnightSword.RequiredItems.Add("BlackMetal", 20);
             BlackKnightSword.RequiredItems.Add("Flametal", 5);
             BlackKnightSword.RequiredItems.Add("Silver", 20);
-            BlackKnightSword.RequiredItems.Add("TwinklingTitanite", 5);
+            BlackKnightSword.RequiredItems.Add("TitaniteSlab", 5);
             BlackKnightSword.RequiredUpgradeItems.Add("BlackMetal", 10);
             BlackKnightSword.RequiredUpgradeItems.Add("Flametal", 5);
             BlackKnightSword.RequiredUpgradeItems.Add("Silver", 10);
-            BlackKnightSword.RequiredUpgradeItems.Add("TwinklingTitanite", 5);
+            BlackKnightSword.RequiredUpgradeItems.Add("TitaniteSlab", 5);
 
             Item BlackKnightShield = new("souls", "BlackKnightShield", "assets");
             BlackKnightShield.Name.English("Black Knight Shield"); // You can use this to fix the display name in code
@@ -775,11 +1064,11 @@ namespace PungusSouls
             BlackKnightShield.RequiredItems.Add("BlackMetal", 20);
             BlackKnightShield.RequiredItems.Add("Flametal", 5);
             BlackKnightShield.RequiredItems.Add("Silver", 20);
-            BlackKnightShield.RequiredItems.Add("TwinklingTitanite", 5);
+            BlackKnightShield.RequiredItems.Add("TitaniteSlab", 5);
             BlackKnightShield.RequiredUpgradeItems.Add("BlackMetal", 10);
             BlackKnightShield.RequiredUpgradeItems.Add("Flametal", 5);
             BlackKnightShield.RequiredUpgradeItems.Add("Silver", 10);
-            BlackKnightShield.RequiredUpgradeItems.Add("TwinklingTitanite", 5);
+            BlackKnightShield.RequiredUpgradeItems.Add("TitaniteSlab", 5);
 
             Item BlackKnightUGS = new("souls", "BlackKnightUGS", "assets");
             BlackKnightUGS.Name.English("Black Knight Greatsword"); // You can use this to fix the display name in code
@@ -788,11 +1077,11 @@ namespace PungusSouls
             BlackKnightUGS.RequiredItems.Add("BlackMetal", 40);
             BlackKnightUGS.RequiredItems.Add("Flametal", 10);
             BlackKnightUGS.RequiredItems.Add("Silver", 40);
-            BlackKnightUGS.RequiredItems.Add("TwinklingTitanite", 10);
+            BlackKnightUGS.RequiredItems.Add("TitaniteSlab", 10);
             BlackKnightUGS.RequiredUpgradeItems.Add("BlackMetal", 20);
             BlackKnightUGS.RequiredUpgradeItems.Add("Flametal", 10);
             BlackKnightUGS.RequiredUpgradeItems.Add("Silver", 10);
-            BlackKnightUGS.RequiredUpgradeItems.Add("TwinklingTitanite", 5);
+            BlackKnightUGS.RequiredUpgradeItems.Add("TitaniteSlab", 5);
 
             Item BlackIronShield = new("souls", "BlackIronShield", "assets");
             BlackIronShield.Name.English("Black Iron GreatShield"); // You can use this to fix the display name in code
@@ -801,11 +1090,11 @@ namespace PungusSouls
             BlackIronShield.RequiredItems.Add("Iron", 40);
             BlackIronShield.RequiredItems.Add("Tin", 10);
             BlackIronShield.RequiredItems.Add("Wood", 40);
-            BlackIronShield.RequiredItems.Add("TwinklingTitanite", 10);
+            BlackIronShield.RequiredItems.Add("TitaniteSlab", 10);
             BlackIronShield.RequiredUpgradeItems.Add("Iron", 20);
             BlackIronShield.RequiredUpgradeItems.Add("Tin", 10);
             BlackIronShield.RequiredUpgradeItems.Add("Wood", 10);
-            BlackIronShield.RequiredUpgradeItems.Add("TwinklingTitanite", 5);
+            BlackIronShield.RequiredUpgradeItems.Add("TitaniteSlab", 5);
 
             Item GoldSilverTracers = new("souls", "GoldSilverTracers");
             GoldSilverTracers.Name.English("Gold & Silver Tracers"); // You can use this to fix the display name in code
@@ -817,7 +1106,8 @@ namespace PungusSouls
             GoldSilverTracers.RequiredItems.Add("Silver", 20);
             GoldSilverTracers.RequiredUpgradeItems.Add("Bronze", 10);
             GoldSilverTracers.RequiredUpgradeItems.Add("Silver", 10);
-            GoldSilverTracers.RequiredUpgradeItems.Add("TwinklingTitanite", 5);
+            GoldSilverTracers.RequiredUpgradeItems.Add("TitaniteSlab", 5);
+            GoldSilverTracers.RequiredUpgradeItems.Add("TitaniteChunk", 5);
 
             #endregion Tier 5
             #region Tier 6
@@ -902,6 +1192,7 @@ namespace PungusSouls
             RingedKnightPairedGreatswords.RequiredUpgradeItems.Add("TwinklingTitanite", 5);
             RingedKnightPairedGreatswords.RequiredUpgradeItems.Add("BlackCore", 5);
             #endregion Tier 7
+            Debug.Log("[PungusSouls] AFTER WEP");
             #endregion Weapons
 
             #region Items
@@ -1040,7 +1331,8 @@ namespace PungusSouls
             GrassCrestShield1.Configurable = Configurability.Disabled;
             Item Wyvern_Bite = new("souls", "Wyvern_Bite", "assets");
             Wyvern_Bite.Configurable = Configurability.Disabled;
-
+            Item charred_magestaff_fire_marika = new("souls", "charred_magestaff_fire_marika", "assets");
+            charred_magestaff_fire_marika.Configurable = Configurability.Disabled;
             /*  Item GreatLordGreatSword1 = new("souls", "GreatLordGreatSword1", "assets");
             GreatLordGreatSword1.Configurable = Configurability.Disabled;
             Item Gwyn_Kick = new("souls", "Gwyn_Kick", "assets");
@@ -1084,19 +1376,19 @@ namespace PungusSouls
 
             #region Projectiles and AOEs 
 
-            ItemManager.PrefabManager.RegisterPrefab(ItemManager.PrefabManager.RegisterAssetBundle("souls"), "BlackFlame_AOE");
-            ItemManager.PrefabManager.RegisterPrefab(ItemManager.PrefabManager.RegisterAssetBundle("souls"), "LightningSpear_Projectile");
-            ItemManager.PrefabManager.RegisterPrefab(ItemManager.PrefabManager.RegisterAssetBundle("souls"), "dragon_lightning_projectile");
-            ItemManager.PrefabManager.RegisterPrefab(ItemManager.PrefabManager.RegisterAssetBundle("souls"), "MLGS_Projectile_New");
-            ItemManager.PrefabManager.RegisterPrefab(ItemManager.PrefabManager.RegisterAssetBundle("souls"), "projectile_hello");
-            ItemManager.PrefabManager.RegisterPrefab(ItemManager.PrefabManager.RegisterAssetBundle("souls"), "projectile_thankyou");
-            ItemManager.PrefabManager.RegisterPrefab(ItemManager.PrefabManager.RegisterAssetBundle("souls"), "projectile_helpme");
-            ItemManager.PrefabManager.RegisterPrefab(ItemManager.PrefabManager.RegisterAssetBundle("souls"), "projectile_imsorry");
-            ItemManager.PrefabManager.RegisterPrefab(ItemManager.PrefabManager.RegisterAssetBundle("souls"), "projectile_verygood");
-            ItemManager.PrefabManager.RegisterPrefab(ItemManager.PrefabManager.RegisterAssetBundle("souls"), "CatCharm_projectile");
-            ItemManager.PrefabManager.RegisterPrefab(ItemManager.PrefabManager.RegisterAssetBundle("souls"), "WolfCharm_Projectile");
-            ItemManager.PrefabManager.RegisterPrefab(ItemManager.PrefabManager.RegisterAssetBundle("souls"), "Soularrow");
-            ItemManager.PrefabManager.RegisterPrefab(ItemManager.PrefabManager.RegisterAssetBundle("souls"), "buff_lightning");
+            ItemManager.PrefabManager.RegisterPrefab("souls", "BlackFlame_AOE");
+            ItemManager.PrefabManager.RegisterPrefab("souls", "LightningSpear_Projectile");
+            ItemManager.PrefabManager.RegisterPrefab("souls", "dragon_lightning_projectile");
+            ItemManager.PrefabManager.RegisterPrefab("souls", "MLGS_Projectile_New");
+            ItemManager.PrefabManager.RegisterPrefab("souls", "projectile_hello");
+            ItemManager.PrefabManager.RegisterPrefab("souls", "projectile_thankyou");
+            ItemManager.PrefabManager.RegisterPrefab("souls", "projectile_helpme");
+            ItemManager.PrefabManager.RegisterPrefab("souls", "projectile_imsorry");
+            ItemManager.PrefabManager.RegisterPrefab("souls", "projectile_verygood");
+            ItemManager.PrefabManager.RegisterPrefab("souls", "CatCharm_projectile");
+            ItemManager.PrefabManager.RegisterPrefab("souls", "WolfCharm_Projectile");
+            ItemManager.PrefabManager.RegisterPrefab("souls", "Soularrow");
+            //ItemManager.PrefabManager.RegisterPrefab("souls", "buff_lightning");
 
             #endregion Projectiles and AOEs
 
@@ -1241,7 +1533,7 @@ namespace PungusSouls
             GiantMushroom.Drops["Mushroom"].Amount = new CreatureManager.Range(1, 3);
             GiantMushroom.Drops["Mushroom"].DropChance = 75f;
 
-            Creature GiantMushroomBro = new("souls", "GiantMushroomBro")
+/*            Creature GiantMushroomBro = new("souls", "GiantMushroomBro")
             {
                 Maximum = 0,
                 SpawnChance = 0f,
@@ -1255,7 +1547,7 @@ namespace PungusSouls
                 SpawnChance = 0f,
                 CanSpawn = false
             };
-            BabyMushroom.Localize().English("Baby Mushroom Bro");
+            BabyMushroom.Localize().English("Baby Mushroom Bro");*/
 
             /* 
              Creature Smough = new("souls", "Smough")
@@ -1318,12 +1610,8 @@ namespace PungusSouls
 
             Creature SweetShalquoir = new Creature("souls", "SweetShalquoir")
             {
-                Biome = Heightmap.Biome.None,
-                GroupSize = new CreatureManager.Range(1f, 2f),
-                CheckSpawnInterval = 600,
-                RequiredWeather = (Weather.Rain | Weather.Fog),
-                FoodItems = "FishRaw",
-                Maximum = 0
+            CanSpawn = false,
+
             };
             SweetShalquoir.Localize().English("Sweet Shalquoir");
             SweetShalquoir.Drops["Wood"].Amount = new CreatureManager.Range(1f, 2f);
@@ -1343,41 +1631,41 @@ namespace PungusSouls
 
             Creature Marika = new Creature("souls", "queenmarika")
             {
-                Biome = Heightmap.Biome.None,
-                Maximum = 0,
-                SpawnChance = 0f,
-                CanSpawn = false
+                CanSpawn = false,
+                ConfigurationEnabled = false,
             };
             Marika.Localize().English("Queen Marika");
-            Debug.Log(typeof(DynamicBone).FullName);
-            Debug.Log(typeof(DynamicBoneCollider).FullName);
-            Debug.Log(typeof(DynamicBoneColliderBase).FullName);
 
-            Debug.Log(typeof(DynamicBone).AssemblyQualifiedName);
-            Debug.Log(typeof(DynamicBoneCollider).AssemblyQualifiedName);
-            Debug.Log(typeof(DynamicBoneColliderBase).AssemblyQualifiedName);
-
-
-            GameObject marikaPrefab = Marika.Prefab;
-
-            foreach (Transform t in marikaPrefab.GetComponentsInChildren<Transform>(true))
-            {
-                foreach (Component component in t.GetComponents<Component>())
-                {
-                    if (component == null)
-                    {
-                        Debug.LogError($"NULL COMPONENT FOUND ON {t.name}");
-                    }
-                }
+                #endregion
+                Debug.Log("[PungusSouls] AWAKE COMPLETE");
             }
-            #endregion
-
+            catch (Exception ex)
+            {
+                Debug.LogError("[PungusSouls] FATAL ERROR IN AWAKE");
+                Debug.LogError(ex);
+                throw;
+            }
             Animations.LoadAssets();
             Assembly assembly = Assembly.GetExecutingAssembly();
             _harmony.PatchAll(assembly);
             Debug.Log("[Agent] ✅ Harmony patches applied");
 
             SetupWatcher();
+        }
+        private GameObject LoadPrefab(string name)
+        {
+            GameObject prefab = LoadPrefab(name);
+
+            if (prefab == null)
+            {
+                Debug.LogError($"FAILED TO LOAD PREFAB: {name}");
+            }
+            else
+            {
+                Debug.Log($"Loaded prefab: {name}");
+            }
+
+            return prefab;
         }
         private static string GetFullPath(Transform transform)
         {
