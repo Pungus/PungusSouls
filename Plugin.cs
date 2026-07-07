@@ -1655,6 +1655,8 @@ namespace PungusSouls
             }
             Animations.LoadAssets();
             Assembly assembly = Assembly.GetExecutingAssembly();
+            Harmony.DEBUG = true;
+
             _harmony.PatchAll(assembly);
             SetupWatcher();
         }
