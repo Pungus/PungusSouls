@@ -17,6 +17,7 @@ namespace PungusSouls
 
         private static bool _assetsLoaded;
         private static string _lastWeapon;
+        public static AssetBundle asset = PrefabManager.RegisterAssetBundle("souls");
 
         // ---------------- INIT ----------------
 
@@ -25,7 +26,7 @@ namespace PungusSouls
             if (_assetsLoaded) return;
             _assetsLoaded = true;
 
-            var asset = PrefabManager.RegisterAssetBundle("souls");
+            
 
             _customClips["AbyssGreatswordAttack3"] = asset.LoadAsset<AnimationClip>("AbyssGreatswordAttack2");
 

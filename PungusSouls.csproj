@@ -157,9 +157,26 @@
   <ItemGroup>
     <Compile Include="Animations.cs" />
     <Compile Include="CompanionFramework\Core\Agent\AgentComponent.cs" />
+    <Compile Include="CompanionFramework\Integration\AgentBedPerformancePatch.cs" />
     <Compile Include="CompanionFramework\Integration\AgentDoorHandler.cs" />
+    <Compile Include="CompanionFramework\Integration\AgentDoorNavigationAssist.cs" />
     <Compile Include="CompanionFramework\Integration\AgentNpcIssueFixes.cs" />
+    <Compile Include="CompanionFramework\Integration\AgentNpcMovementTuningPatch.cs" />
+    <Compile Include="CompanionFramework\Integration\AgentRestedSpawnLagPatch.cs" />
+    <Compile Include="CompanionFramework\Integration\AgentSleepWakeExitFix.cs" />
+    <Compile Include="CompanionFramework\Integration\HUD\AgentNpcIconRegistry.cs" />
+    <Compile Include="CompanionFramework\Patches\AgentAttackStaminaGatePatch.cs" />
+    <Compile Include="CompanionFramework\Patches\AgentDebugVisualizer.cs" />
+    <Compile Include="CompanionFramework\Patches\AgentJumpGuardPatch.cs" />
+    <Compile Include="CompanionFramework\Patches\AgentNpcRuntimeHotfixes.cs" />
+    <Compile Include="CompanionFramework\Patches\AgentRestedFireplaceSafetyPatch.cs" />
+    <Compile Include="Managers\Patches\UpgradeMaps.cs" />
+    <Compile Include="Managers\Patches\UpgradeTiers.cs" />
+    <Compile Include="Managers\Patches\WeaponUpgradeRequirementTables.cs" />
+    <Compile Include="Managers\Patches\WeaponUpgradeStationRequirementTables.cs" />
     <Compile Include="Managers\ResourceSpawnManager.cs" />
+    <Compile Include="PungusTools\BonfireController.cs" />
+    <Compile Include="PungusTools\BonfireManager.cs" />
     <Compile Include="PungusTools\ClearAreasNew.cs" />
     <Compile Include="CompanionFramework\Core\Agent\AgentBrain.cs" />
     <Compile Include="CompanionFramework\Core\Agent\AgentContext.cs" />
@@ -207,8 +224,8 @@
     <Compile Include="CompanionFramework\Systems\Inventory\AgentContainer.cs" />
     <Compile Include="CompanionFramework\Systems\Inventory\InventoryExchangeService.cs" />
     <Compile Include="CompanionFramework\Integration\NPCInstaller.cs" />
-    <Compile Include="PungusTools\ArmorTools.BodypartSystem.cs" />
-    <Compile Include="PungusTools\ArmorTools.Util.cs" />
+    <Compile Include="PungusTools\BodypartSystem.cs" />
+    <Compile Include="PungusTools\Util.cs" />
     <None Include="EnvironmentManager.cs" />
     <Compile Include="Managers\CreatureManager.cs" />
     <Compile Include="Managers\ItemManager.cs" />
@@ -226,14 +243,16 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
-    <Compile Include="PungusTools\BonfireController.cs" />
     <Compile Include="PungusTools\BonfireSpawner.cs" />
     <Compile Include="Managers\EffectsManager.cs" />
     <Compile Include="PungusTools\DynamicBone.cs" />
     <Compile Include="PungusTools\DynamicBoneCollider.cs" />
     <Compile Include="PungusTools\DynamicBoneColliderBase.cs" />
     <Compile Include="PungusTools\DynamicBonePlaneCollider.cs" />
-    <Compile Include="PungusTools\ZNetSceneAwakePatchInspector.cs" />
+    <Compile Include="PungusTools\Diagnostics.cs" />
+    <Compile Include="PungusTools\GroundFollowingProjectile.cs" />
+    <Compile Include="PungusTools\PungusAttackDebugTools.cs" />
+    <Compile Include="PungusTools\PungusWeaponHitboxDebug.cs" />
     <Compile Include="VersionHandshake.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -248,6 +267,10 @@
   <ItemGroup>
     <Content Include=".gitignore" />
     <EmbeddedResource Include="assets\firelinkicon.png" />
+    <EmbeddedResource Include="assets\icons\sif_map.png" />
+    <EmbeddedResource Include="assets\icons\sweetshalquoir_map.png" />
+    <EmbeddedResource Include="assets\icons\sweetshalquoir_hud.png" />
+    <EmbeddedResource Include="assets\icons\sif_hud.png" />
     <Content Include="icons\README.txt" />
     <Content Include="ILRepack.targets" />
     <Content Include="Libs\CreatureManager.dll">
