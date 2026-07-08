@@ -1,16 +1,16 @@
 ManifestFileVersion: 0
 UnityVersion: 6000.0.76f1
-CRC: 4038255374
+CRC: 3504454982
 Hashes:
   AssetFileHash:
     serializedVersion: 2
-    Hash: e1289f299f6e409f32197488b27ec427
+    Hash: d0dcff81132b6fe66e45616a101bb9e3
   TypeTreeHash:
     serializedVersion: 2
-    Hash: 8927493583abfb6ccb21f990cc332ae5
+    Hash: 19a35c73e16ee07ee33bb7c1cf5b1b4f
   IncrementalBuildHash:
     serializedVersion: 2
-    Hash: 526ea6e18cad47b0736c99678132a33f
+    Hash: e19b1b002e4229fc6bf673749027dacb
 HashAppended: 0
 ClassTypes:
 - Class: 1
@@ -96,11 +96,15 @@ ClassTypes:
 - Class: 114
   Script: {fileID: 1578695569, guid: c1b78fa918b030faf1c1f6f6164daeb2, type: 3}
 - Class: 114
+  Script: {fileID: -1434102732, guid: c1b78fa918b030faf1c1f6f6164daeb2, type: 3}
+- Class: 114
   Script: {fileID: 1282597392, guid: c1b78fa918b030faf1c1f6f6164daeb2, type: 3}
 - Class: 114
   Script: {fileID: 1047228599, guid: c1b78fa918b030faf1c1f6f6164daeb2, type: 3}
 - Class: 114
   Script: {fileID: -1190376124, guid: c1b78fa918b030faf1c1f6f6164daeb2, type: 3}
+- Class: 114
+  Script: {fileID: -124155675, guid: c1b78fa918b030faf1c1f6f6164daeb2, type: 3}
 - Class: 114
   Script: {fileID: 1345532120, guid: c1b78fa918b030faf1c1f6f6164daeb2, type: 3}
 - Class: 114
@@ -140,6 +144,8 @@ ClassTypes:
 - Class: 114
   Script: {fileID: 1109157524, guid: c1b78fa918b030faf1c1f6f6164daeb2, type: 3}
 - Class: 114
+  Script: {fileID: 1426176784, guid: c1b78fa918b030faf1c1f6f6164daeb2, type: 3}
+- Class: 114
   Script: {fileID: 385221343, guid: c1b78fa918b030faf1c1f6f6164daeb2, type: 3}
 - Class: 114
   Script: {fileID: 296398266, guid: c1b78fa918b030faf1c1f6f6164daeb2, type: 3}
@@ -151,6 +157,8 @@ ClassTypes:
   Script: {fileID: 489050665, guid: c1b78fa918b030faf1c1f6f6164daeb2, type: 3}
 - Class: 114
   Script: {fileID: -347224168, guid: c1b78fa918b030faf1c1f6f6164daeb2, type: 3}
+- Class: 114
+  Script: {fileID: -391423902, guid: c1b78fa918b030faf1c1f6f6164daeb2, type: 3}
 - Class: 114
   Script: {fileID: 130663047, guid: c1b78fa918b030faf1c1f6f6164daeb2, type: 3}
 - Class: 114
@@ -182,7 +190,11 @@ ClassTypes:
 - Class: 114
   Script: {fileID: -406614928, guid: c1b78fa918b030faf1c1f6f6164daeb2, type: 3}
 - Class: 114
+  Script: {fileID: 1319111541, guid: c1b78fa918b030faf1c1f6f6164daeb2, type: 3}
+- Class: 114
   Script: {fileID: -2060124386, guid: c1b78fa918b030faf1c1f6f6164daeb2, type: 3}
+- Class: 114
+  Script: {fileID: 1214644819, guid: c1b78fa918b030faf1c1f6f6164daeb2, type: 3}
 - Class: 114
   Script: {fileID: -201937006, guid: c1b78fa918b030faf1c1f6f6164daeb2, type: 3}
 - Class: 114
@@ -198,9 +210,13 @@ ClassTypes:
 - Class: 114
   Script: {fileID: 1521249158, guid: ff2698d46ef49fa4493291866e6bf1d4, type: 3}
 - Class: 114
-  Script: {fileID: 1109157524, guid: ff2698d46ef49fa4493291866e6bf1d4, type: 3}
+  Script: {fileID: 469224316, guid: ff2698d46ef49fa4493291866e6bf1d4, type: 3}
 - Class: 114
-  Script: {fileID: 825357479, guid: ff2698d46ef49fa4493291866e6bf1d4, type: 3}
+  Script: {fileID: -1044604064, guid: ff2698d46ef49fa4493291866e6bf1d4, type: 3}
+- Class: 114
+  Script: {fileID: 313648218, guid: ff2698d46ef49fa4493291866e6bf1d4, type: 3}
+- Class: 114
+  Script: {fileID: 1404409730, guid: ff2698d46ef49fa4493291866e6bf1d4, type: 3}
 - Class: 115
   Script: {instanceID: 0}
 - Class: 128
@@ -319,7 +335,11 @@ SerializeReferenceClassIdentifiers:
 - AssemblyName: assembly_valheim
   ClassName: Piece/Requirement
 - AssemblyName: assembly_valheim
+  ClassName: RandomAnimation/RandomValue
+- AssemblyName: assembly_valheim
   ClassName: Raven/RavenText
+- AssemblyName: assembly_valheim
+  ClassName: SpawnArea/SpawnData
 - AssemblyName: assembly_valheim
   ClassName: Trader/TradeItem
 Assets:
@@ -433,7 +453,7 @@ Assets:
 - Assets/test/DS - silver knight/BlackKnightHalberd2.prefab
 - Assets/1Proj/wep/Greatsword_Attack1.anim
 - Assets/test/Sentinel/Sentinel_Cast1.prefab
-- Assets/1Proj/Companions/FangBoar1.prefab
+- Assets/1Proj/Companions/FangBoarCompanion.prefab
 - Assets/1Proj/wep/Zweihander/ChaosZweihander1.prefab
 - Assets/test/DS - silver knight/BlackKnightGreatAxe2.prefab
 - Assets/test/bonfire/Bonefire.prefab
@@ -488,7 +508,7 @@ Assets:
 - Assets/1Proj/Gwyn_SpawnFire.prefab
 - Assets/test/sif/sif_tombstone.prefab
 - Assets/test/Ornstein the Dragonslayer/Ornstein_Rush.prefab
-- Assets/1Proj/Companions/queenmarika.prefab
+- Assets/1Proj/Companions/queenmarikacompanion.prefab
 - Assets/test/sif/Sif_attack_slash1.prefab
 - Assets/1Proj/wep/MLGS/Mlgs_heavy.anim
 - Assets/test/Ornstein the Dragonslayer/Ornstein_Thrust1.prefab
@@ -503,6 +523,7 @@ Assets:
 - Assets/test/carvings/sfx_hello.prefab
 - Assets/test/DS - silver knight/SilverKnight.prefab
 - Assets/test/carvings/projectile_imsorry.prefab
+- Assets/RyanReos_QueenMarika/spawn_marikameteors.prefab
 - Assets/1Proj/wep/Greatsword_Attack3.anim
 - Assets/test/Andre/Talk1.mp3
 - Assets/1Proj/Titanite/TitaniteSlab.prefab
@@ -571,9 +592,11 @@ Assets:
 - Assets/1Proj/wep/2handclub_3.anim
 - Assets/test/carvings/sfx_imsorry.prefab
 - Assets/1Proj/wep/Gold Tracer/DualswordsAlt.anim
+- Assets/1Proj/Companions/EikthyrCompanion.prefab
 - Assets/test/Andre/talk4.mp3
 - Assets/test/Lantern/Lantern1.prefab
 - Assets/test/hellkite drake/hellkitedrakeattack.prefab
+- Assets/PrefabInstance/projectile_marikameteor.prefab
 - Assets/test/Ornstein the Dragonslayer/Ornstein_LightningSpear1.prefab
 - Assets/test/Mushroom/GiantMushroomBro.prefab
 - Assets/1Proj/wep/Channeler's Trident/TridentBuff.asset
@@ -585,22 +608,23 @@ Assets:
 - Assets/test/Andre/Greeting2.mp3
 - Assets/1Proj/wep/RingKnightGreatSwords/GS_Strafe_Right_Fast.anim
 - Assets/test/Crystal Golem/sfx_crystalgolem_bomb.prefab
+- Assets/test/Andre/BlacksmithAltar.prefab
 - Assets/1Proj/wep/Priscilla's Dagger/DaggerPrisc.prefab
 - Assets/test/Taurus Demon/TaurusWep2.prefab
 - Assets/1Proj/wep/Manus Catalyst/ManusCatalyst.prefab
 - Assets/test/Taurus Demon/TaurusWep1.prefab
-- Assets/Red_Deer/Cats/Cat_Stray/CatStray/FBX/Anim/Arm_Cat_Attack_R.anim
-- Assets/test/Andre/BlacksmithAltar.prefab
 - Assets/1Proj/wep/Curvedsword3.anim
 - Assets/test/Dark Souls - Giant Dad/Giantdad.prefab
 - Assets/test/Ornstein the Dragonslayer/DragonSlayerOrnstein.prefab
 - Assets/PrefabInstance/Soularrow.prefab
 - Assets/test/cat/Cat_jumpattack.prefab
+- Assets/Red_Deer/Cats/Cat_Stray/CatStray/FBX/Anim/Arm_Cat_Attack_R.anim
 - Assets/1Proj/wep/buff_fire.prefab
 - Assets/test/Crystal Golem/Golem_AOE.prefab
 - Assets/test/carvings/projectile_helpme.prefab
 - Assets/test/Dark Souls - Giant Dad/GrassCrestShield1.prefab
 - Assets/test/DS - silver knight/BlackKnightUGS1.prefab
+- Assets/GameObject/MarikaMeteors.prefab
 - Assets/test/sif/shalquoir_tombstone.prefab
 - Assets/test/BlackKnight ds3/BlackKnight.prefab
 - Assets/test/Andre/sfx_Andre_bye1.prefab
@@ -658,6 +682,7 @@ Assets:
 - Assets/test/carvings/VerygoodCarving.prefab
 - Assets/1Proj/wep/Artorias Set/ArtLegs.prefab
 - Assets/1Proj/Titanite/Titanite_Sword_Loc_2.prefab
+- Assets/1Proj/Darkroot Garden & Darkroot Basin/ForestTower.prefab
 - Assets/1Proj/wep/Artorias GreatShield/ArtoriasGreatshield.prefab
 - Assets/test/capra/Capra_Attack2.prefab
 - Assets/1Proj/wep/Gold Tracer/Dualswords2.anim

@@ -354,103 +354,94 @@ namespace PungusSouls
             Apply(ObjectDB.instance);
         }
 
+
         public static void Apply(ObjectDB objectDb)
         {
-            if (!_registered || objectDb == null || objectDb.m_recipes == null)
+            if (!_registered || objectDb == null)
                 return;
-
-            RequirementItemNames.Clear();
-            RequirementRecipeNames.Clear();
-
-            for (int i = 0; i < objectDb.m_recipes.Count; i++)
-            {
-                Recipe recipe = objectDb.m_recipes[i];
-
-                if (recipe == null || recipe.m_item == null)
-                    continue;
-
-                string recipeItemName = CleanPrefabName(recipe.m_item.name);
-
-                if (!Tables.TryGetValue(recipeItemName, out RequirementTable table))
-                    continue;
-
-                ApplyToRecipe(objectDb, recipe, recipeItemName, table);
-            }
         }
 
-        public static bool TryGetAmount(VRequirement requirement, int currentQuality, out int amount)
+
+
+        public static bool TryGetAmount(
+            VRequirement requirement,
+            int currentQuality,
+            out int amount)
         {
-
-            Debug.Log(
-                $"[UpgradeRequirements] Quality={currentQuality} " +
-                $"Requirement={(requirement?.m_resItem?.name ?? "NULL")}");
-
             amount = 0;
-
-            Debug.Log(
-                $"[UpgradeRequirements] Found override amount={amount}");
-
-            if (requirement == null)
-                return false;
-
-            Debug.Log(
-                $"[UpgradeRequirements] Found override amount={amount}");
-
-            if (!RequirementRecipeNames.TryGetValue(requirement, out string recipeItemName))
-                return false;
-
-            Debug.Log(
-                $"[UpgradeRequirements] Found override amount={amount}");
-
-            if (!RequirementItemNames.TryGetValue(requirement, out string requirementItemName))
-                return false;
-
-            Debug.Log(
-                $"[UpgradeRequirements] Found override amount={amount}");
-
-            if (!Tables.TryGetValue(recipeItemName, out RequirementTable table))
-                return false;
-
-            Debug.Log(
-                $"[UpgradeRequirements] " +
-                $"Recipe={recipeItemName} " +
-                $"Material={requirementItemName} " +
-                $"Quality={currentQuality}");
-
-
-            if (table.Levels.TryGetValue(currentQuality, out List<WeaponUpgradeRequirementLevel> requirements))
-            {
-                for (int i = 0; i < requirements.Count; i++)
-                {
-                    WeaponUpgradeRequirementLevel requirementLevel =
-                        requirements[i];
-
-                    if (string.Equals(
-                            CleanPrefabName(requirementLevel.ItemPrefab),
-                            requirementItemName,
-                            StringComparison.OrdinalIgnoreCase))
-                    {
-                        amount = Mathf.Max(
-                            0,
-                            requirementLevel.Amount);
-
-                        return true;
-                    }
-                }
-
-                Debug.Log(
-                    $"[UpgradeRequirements] Hiding " +
-                    $"{requirementItemName} " +
-                    $"at quality {currentQuality}");
-
-                amount = 0;
-                return true;
-            }
-
             return false;
         }
 
+        public static bool TryBuildRequirementsForLevel(
+    ObjectDB objectDb,
+    string itemPrefab,
+    int currentQuality,
+    out Piece.Requirement[] resources)
+        {
+            resources = Array.Empty<Piece.Requirement>();
 
+            if (objectDb == null)
+                return false;
+
+            if (string.IsNullOrWhiteSpace(itemPrefab))
+                return false;
+
+            string cleanItemName = CleanPrefabName(itemPrefab);
+
+            if (!Tables.TryGetValue(cleanItemName, out RequirementTable table))
+                return false;
+
+            if (!table.Levels.TryGetValue(currentQuality, out List<WeaponUpgradeRequirementLevel> requirements))
+                return false;
+
+            List<Piece.Requirement> result = new List<Piece.Requirement>();
+
+            for (int i = 0; i < requirements.Count; i++)
+            {
+                WeaponUpgradeRequirementLevel requirementLevel = requirements[i];
+
+                if (string.IsNullOrWhiteSpace(requirementLevel.ItemPrefab))
+                    continue;
+
+                ItemDrop itemDrop = FindItemDrop(
+                    objectDb,
+                    requirementLevel.ItemPrefab);
+
+                if (itemDrop == null)
+                {
+                    Debug.LogWarning(
+                        "[UpgradeRequirements] Missing requirement item '" +
+                        requirementLevel.ItemPrefab +
+                        "' for upgrade map '" +
+                        cleanItemName +
+                        "'");
+
+                    continue;
+                }
+
+                Piece.Requirement requirement =
+                    new Piece.Requirement
+                    {
+                        m_resItem = itemDrop,
+                        m_amount = Mathf.Max(1, requirementLevel.Amount),
+                        m_amountPerLevel = 0,
+                        m_recover = true
+                    };
+
+                result.Add(requirement);
+
+                RequirementRecipeNames[requirement] = cleanItemName;
+                RequirementItemNames[requirement] =
+                    CleanPrefabName(requirementLevel.ItemPrefab);
+            }
+
+            if (result.Count == 0)
+                return false;
+
+            resources = result.ToArray();
+
+            return true;
+        }
         private static void ApplyToRecipe(ObjectDB objectDb, Recipe recipe, string recipeItemName, RequirementTable table)
         {
 
@@ -461,9 +452,16 @@ namespace PungusSouls
 
             if (recipe.m_resources != null)
             {
-                resources.AddRange(recipe.m_resources);
-            }
+                foreach (var req in recipe.m_resources)
+                {
+                    resources.Add(req);
 
+                    RequirementRecipeNames[req] = recipeItemName;
+
+                    RequirementItemNames[req] =
+                        CleanPrefabName(req.m_resItem.name);
+                }
+            }
 
             HashSet<string> allRequirementNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
@@ -497,24 +495,40 @@ namespace PungusSouls
                         continue;
                     }
 
+
                     requirement = new VRequirement
                     {
                         m_resItem = itemDrop,
-                        m_amount = 0,
+                        m_amount = 1,
                         m_amountPerLevel = 0,
                         m_recover = true
                     };
 
+
                     resources.Add(requirement);
                 }
 
-                requirement.m_amount = 0;
+                requirement.m_amount = 1;
                 requirement.m_amountPerLevel = 0;
                 RequirementRecipeNames[requirement] = recipeItemName;
                 RequirementItemNames[requirement] = requirementName;
             }
 
             recipe.m_resources = resources.ToArray();
+
+            Debug.Log(
+                $"Recipe={recipe.name} " +
+                $"Resources={recipe.m_resources.Length} " +
+                $"Enabled={recipe.m_enabled} " +
+                $"MinStation={recipe.m_minStationLevel}");
+
+            foreach (var req in recipe.m_resources)
+            {
+                Debug.Log(
+                    $"{req.m_resItem.name} " +
+                    $"Amount={req.m_amount} " +
+                    $"PerLevel={req.m_amountPerLevel}");
+            }
 
             foreach (var resource in resources)
             {
@@ -553,6 +567,7 @@ namespace PungusSouls
             }
 
             return table;
+
         }
 
         private static VRequirement FindRequirement(List<VRequirement> requirements, string requirementPrefab)

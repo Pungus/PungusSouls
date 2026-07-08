@@ -238,7 +238,7 @@ public static class AgentNpcIconRegistry
             set.MapIcon = sprite;
     }
 
-    private static Sprite LoadSpriteFromEmbeddedResource(Assembly assembly, string resourceName)
+    public static Sprite LoadSpriteFromEmbeddedResource(Assembly assembly, string resourceName)
     {
         if (assembly == null || string.IsNullOrEmpty(resourceName))
             return null;
@@ -261,7 +261,7 @@ public static class AgentNpcIconRegistry
         }
     }
 
-    private static Sprite LoadSpriteFromFile(string path)
+    public static Sprite LoadSpriteFromFile(string path)
     {
         try
         {

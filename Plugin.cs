@@ -305,7 +305,7 @@ namespace PungusSouls
 
                         InForest = true,
                         ForestThresholdMin = 0.5f,
-
+                        MinDistanceFromSame = 100f,
                         GroupId = "titanite_giant_Tier1",
                         GroupSizeMin = 1,
                         GroupSizeMax = 1,
@@ -327,7 +327,7 @@ namespace PungusSouls
 
                         InForest = true,
                         ForestThresholdMin = 0.5f,
-
+                        MinDistanceFromSame = 100f,
                         GroupId = "titanite_giant_Tier2",
                         GroupSizeMin = 1,
                         GroupSizeMax = 1,
@@ -350,7 +350,7 @@ namespace PungusSouls
 
                         InForest = true,
                         ForestThresholdMin = 0.5f,
-
+                        MinDistanceFromSame = 100f,
                         GroupId = "titanite_giant_Tier1",
                         GroupSizeMin = 1,
                         GroupSizeMax = 1,
@@ -373,7 +373,7 @@ namespace PungusSouls
 
                         InForest = true,
                         ForestThresholdMin = 0.5f,
-
+                        MinDistanceFromSame = 100f,
                         GroupId = "titanite_giant_Tier2",
                         GroupSizeMin = 1,
                         GroupSizeMax = 1,
@@ -395,7 +395,7 @@ namespace PungusSouls
 
                         InForest = true,
                         ForestThresholdMin = 0.5f,
-
+                        MinDistanceFromSame = 100f,
                         GroupId = "titanite_giant_Tier3",
                         GroupSizeMin = 1,
                         GroupSizeMax = 1,
@@ -418,7 +418,7 @@ namespace PungusSouls
 
                         InForest = true,
                         ForestThresholdMin = 0.5f,
-
+                        MinDistanceFromSame = 100f,
                         GroupId = "titanite_giant_Tier4",
                         GroupSizeMin = 1,
                         GroupSizeMax = 1,
@@ -440,11 +440,11 @@ namespace PungusSouls
                         GroundOffset = -6f,
                         InForest = true,
                         ForestThresholdMin = 0.5f,
-
+                        MinDistanceFromSame = 100f,
                         GroupId = "titanite_vein_1",
                         GroupSizeMin = 1,
                         GroupSizeMax = 1,
-                        GroupRadius = 120f
+                        GroupRadius = 100f,
                     });
 
                 #endregion ResourceManager
@@ -517,9 +517,8 @@ namespace PungusSouls
             Bonefire.Crafting.Set("BlacksmithAltar"); // Set a crafting station requirement for the piece.
             Bonefire.Snapshot();
             
-            //Item sif_tombstone =new("souls", "sif_tombstone");
-            //sif_tombstone.Name.English("Sif's Tombstone"); // Localize the name and description for the building piece for a language.
-                //Debug.Log("[PungusSouls] AFTER PIECE");
+
+
                 #endregion
                 #region SkillManager Example Code
                 /*
@@ -722,8 +721,10 @@ namespace PungusSouls
             StaffWood.RequiredItems.Add("TitaniteShard", 10);
             StaffWood.RequiredItems.Add("GreydwarfEye", 20);
             StaffWood.RequiredItems.Add("HardAntler", 5);
+            StaffWood.RequiredUpgradeItems.Add("TitaniteShard", 1);
             StaffWood.ApplyUpgradeMap("Standard");
-            Item sunshield1 = new("souls", "sunshield1", "assets");
+
+                Item sunshield1 = new("souls", "sunshield1", "assets");
             sunshield1.Name.English("sunlight shield"); // You can use this to fix the display name in code
             sunshield1.Description.English("Shield of Solaire of Astora, Knight of Sunlight. Decorated with a holy symbol, but Solaire illustrated it himself, and it has no divine powers of its own. As it turns out, Solaire's incredible prowess is a product of his own training, and nothing else.");
             sunshield1.Crafting.Add("BlacksmithAltar", 1); // Custom crafting stations can be specified as a string
@@ -731,8 +732,10 @@ namespace PungusSouls
             sunshield1.RequiredItems.Add("Amber", 10);
             sunshield1.RequiredItems.Add("BronzeNails", 20);
             sunshield1.RequiredItems.Add("TitaniteShard", 10);
+            sunshield1.RequiredUpgradeItems.Add("TitaniteShard", 1);
             sunshield1.ApplyUpgradeMap("Standard");
-                Item DrakeSword = new("souls", "DrakeSword", "assets");
+
+            Item DrakeSword = new("souls", "DrakeSword", "assets");
             DrakeSword.Name.English("Drake Sword"); // You can use this to fix the display name in code
             DrakeSword.Description.English("This sword, one of the rare dragon weapons, is formed by a drake's tail. Drakes are seen as undeveloped imitators of the dragons, but they are likely their distant kin.\r\nThe sword is imbued with a mystical power, to be released when held with both hands.");
             DrakeSword.Crafting.Add("BlacksmithAltar", 1); // Custom crafting stations can be specified as a string
@@ -740,6 +743,7 @@ namespace PungusSouls
             DrakeSword.RequiredItems.Add("Stone", 20);
             DrakeSword.RequiredItems.Add("Wood", 40);
             DrakeSword.RequiredItems.Add("Flint", 1);
+            DrakeSword.RequiredUpgradeItems.Add("TitaniteShard", 51);
             DrakeSword.ApplyUpgradeMap("Standard");
 
                 Item SunlightSword = new("souls", "SunlightSword", "assets");
@@ -1528,6 +1532,20 @@ namespace PungusSouls
             FangBoar.Drops["TwinklingTitanite"].Amount = new CreatureManager.Range(2, 4);
             FangBoar.Drops["TwinklingTitanite"].DropChance = 75f;
 
+            Creature FangBoarCompanion = new("souls", "FangBoarCompanion")
+
+            {
+                RequiredGlobalKey = GlobalKey.KilledBonemass,
+                Biome = Heightmap.Biome.Meadows,
+                GroupSize = new CreatureManager.Range(1, 2),
+                CheckSpawnInterval = 12000,
+                Maximum = 1
+            };
+
+            FangBoarCompanion.Localize().English("Fang Boar");
+
+
+
             Creature GiantDad = new("souls", "GiantDad")
 
             {
@@ -1636,13 +1654,13 @@ namespace PungusSouls
             CanSpawn = false,
             };
             HellkiteDrake.Localize().English("Hellkite Drake");
-                /*            Creature Marika = new Creature("souls", "queenmarika")
-                            {
-                                Biome = Heightmap.Biome.None,
-                                CanSpawn = false,
-                                ConfigurationEnabled = false,
-                            };
-                            Marika.Localize().English("Queen Marika");*/
+                Creature Marika = new Creature("souls", "queenmarikacompanion")
+                {
+                    Biome = Heightmap.Biome.None,
+                    CanSpawn = false,
+                    ConfigurationEnabled = false,
+                };
+                Marika.Localize().English("Queen Marika");
 
                 #endregion
                 //Debug.Log("[PungusSouls] AWAKE COMPLETE");

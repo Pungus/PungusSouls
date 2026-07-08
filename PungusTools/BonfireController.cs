@@ -20,12 +20,12 @@ using HarmonyLib;
         private GameObject enabledRoot;
         private void Awake()
         {
-            Debug.Log(
-                 $"[Bonfire] Awake {gameObject.name} {transform.position}");
 
-            BonfireManager.RegisterBonfire(transform.position);
+
 
             m_nview = GetComponentInParent<ZNetView>();
+            Debug.Log($"[Bonfire] Awake {gameObject.name} {transform.position}");
+            Debug.Log($"ZDO={(m_nview != null ? m_nview.GetZDO() != null : false)}");
 
             foreach (Transform t in GetComponentsInChildren<Transform>(true))
             {
@@ -33,9 +33,15 @@ using HarmonyLib;
                 {
                     enabledRoot = t.gameObject;
                 }
-                
+
+                if (BonfireManager.IsActivated(transform.position))
+                {
+                    BonfireManager.EnsureMapPin(transform.position);
+                    RefreshState();
+                }
+
             }
-           RefreshState();
+            RefreshState();
         }
         private void Start()
         {
@@ -62,19 +68,17 @@ using HarmonyLib;
                 $"[Bonfire] ActiveInHierarchy = {gameObject.activeInHierarchy}");
 
 
-            BonfireManager.UnregisterBonfire(transform.position);
+            Debug.Log(
+                $"[Bonfire] DESTROYING {gameObject.name} " +
+                $"ZDO={(m_nview != null ? m_nview.GetZDO() != null : false)}");
         }
+
 
         private bool IsActivated()
         {
-            if (m_nview == null)
-            {
-                return enabledRoot != null && enabledRoot.activeSelf;
-            }
-
-            return m_nview.IsValid()
-                && m_nview.GetZDO().GetBool(ActivatedKey);
+            return BonfireManager.IsActivated(transform.position);
         }
+
 
         private void RefreshState()
         {
@@ -109,43 +113,23 @@ using HarmonyLib;
         }
         private void Activate()
         {
-            if (m_nview != null && m_nview.IsValid())
-            {
-                if (!m_nview.IsOwner())
-                {
-                    m_nview.ClaimOwnership();
-                }
-
-                m_nview.GetZDO().Set(ActivatedKey, true);
-            }
-
             if (enabledRoot != null)
             {
                 enabledRoot.SetActive(true);
-
-                foreach (ParticleSystem ps in
-                            enabledRoot.GetComponentsInChildren<ParticleSystem>(true))
+                BonfireManager.RegisterBonfire(transform.position);
+                foreach (ParticleSystem ps in enabledRoot.GetComponentsInChildren<ParticleSystem>(true))
                 {
                     ps.Play(true);
                 }
             }
 
+            BonfireManager.RegisterBonfire(transform.position);
+
             RefreshState();
-
-            Minimap.instance.AddPin(
-                transform.position,
-                Minimap.PinType.Icon3,
-                "Bonfire",
-                true,
-                false);
-
-
-            BonfireManager.StarterActivated = true;
 
             MessageHud.instance.ShowMessage(
                 MessageHud.MessageType.Center,
                 "Bonfire lit");
-
         }
 
 
@@ -220,6 +204,8 @@ using HarmonyLib;
 
         private void StartTravel()
         {
+
+            BonfireManager.CurrentBonfirePosition = transform.position;
             BonfireManager.TravelMode = true;
 
             Minimap.instance.SetMapMode(
@@ -228,17 +214,15 @@ using HarmonyLib;
             MessageHud.instance.ShowMessage(
                 MessageHud.MessageType.Center,
                 "Select a destination bonfire.");
+
         }
 
 
         [HarmonyPatch(typeof(Minimap), "OnMapLeftClick")]
         public static class Minimap_OnMapLeftClick_Patch
         {
-
             private static void Postfix(Minimap __instance)
             {
-                Debug.Log("[Bonfire] Map click detected");
-                Debug.Log($"[Bonfire] TravelMode={BonfireManager.TravelMode}");
                 if (!BonfireManager.TravelMode)
                 {
                     return;
@@ -249,23 +233,29 @@ using HarmonyLib;
                         .Field("m_pins")
                         .GetValue<List<Minimap.PinData>>();
 
+                if (pins == null)
+                {
+                    return;
+                }
+
                 Vector3 worldPos =
                     (Vector3)Traverse.Create(__instance)
-                        .Method("ScreenToWorldPoint",
+                        .Method(
+                            "ScreenToWorldPoint",
                             ZInput.mousePosition)
                         .GetValue();
 
                 Minimap.PinData closest = null;
                 float best = float.MaxValue;
 
-                foreach (var pin in pins)
+                foreach (Minimap.PinData pin in pins)
                 {
                     if (!pin.m_save)
                     {
                         continue;
                     }
 
-                    if (pin.m_name != "Bonfire")
+                    if (!BonfireManager.IsBonfirePin(pin))
                     {
                         continue;
                     }
@@ -282,27 +272,25 @@ using HarmonyLib;
                     }
                 }
 
-                Debug.Log(
-                    $"[Bonfire] Closest pin = {(closest != null ? closest.m_name : "NULL")}");
-
                 if (closest == null)
                 {
                     return;
                 }
-                Debug.Log(
-                    $"[Bonfire] Clicked pin position = {closest.m_pos}");
 
-                Debug.Log($"[Bonfire] Teleporting to {closest.m_pos}");
+                Player player = Player.m_localPlayer;
 
-                Player.m_localPlayer.TeleportTo(
+                if (player == null)
+                {
+                    return;
+                }
+
+                player.TeleportTo(
                     closest.m_pos,
-                    Player.m_localPlayer.transform.rotation,
+                    player.transform.rotation,
                     true);
 
                 BonfireManager.TravelMode = false;
 
-                Minimap.instance.SetMapMode(
-                    Minimap.MapMode.Small);
                 Minimap.instance.SetMapMode(
                     Minimap.MapMode.Small);
 
@@ -310,9 +298,8 @@ using HarmonyLib;
                     MessageHud.MessageType.Center,
                     "Travelled to bonfire.");
             }
-
         }
-        }
+    }
 
     }
 

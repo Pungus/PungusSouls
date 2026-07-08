@@ -1,7 +1,9 @@
 using HarmonyLib;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
+using System.Reflection.Emit;
 using UnityEngine;
 
 namespace PungusSouls
@@ -77,7 +79,6 @@ namespace PungusSouls
                 GroupRadius = groupRadius;
             }
         }
-        private static readonly Dictionary<string, List<Vector3>>SpawnedPositions = new();
         private static readonly List<ResourceSpawnDefinition> Pending = new List<ResourceSpawnDefinition>();
         private static readonly Dictionary<string, ResourceSpawnGroupDefinition> Groups = new Dictionary<string, ResourceSpawnGroupDefinition>(StringComparer.OrdinalIgnoreCase);
         private static bool Initialized;
@@ -175,38 +176,36 @@ namespace PungusSouls
         }
 
 
-        public static bool CanSpawnAtPosition(
-            string prefabName,
-            Vector3 position)
+        private static readonly Dictionary<string, List<Vector3>> SpawnedPositions =
+            new Dictionary<string, List<Vector3>>(StringComparer.OrdinalIgnoreCase);
+
+        public static bool TryReserveSpawnPosition(string prefabName, Vector3 position)
         {
-            if (!Definitions.TryGetValue(
-                    prefabName,
-                    out var definition))
-            {
+            if (!Definitions.TryGetValue(prefabName, out ResourceSpawnDefinition definition))
                 return true;
-            }
 
             if (definition.MinDistanceFromSame <= 0f)
                 return true;
 
-            if (!SpawnedPositions.TryGetValue(
-                    prefabName,
-                    out var positions))
+            if (!SpawnedPositions.TryGetValue(prefabName, out List<Vector3> positions))
             {
-                return true;
+                positions = new List<Vector3>();
+                SpawnedPositions[prefabName] = positions;
             }
 
-            foreach (var existing in positions)
+            for (int i = 0; i < positions.Count; i++)
             {
-                if (Vector3.Distance(
-                        existing,
-                        position) < definition.MinDistanceFromSame)
-                {
+                if (Vector3.Distance(positions[i], position) < definition.MinDistanceFromSame)
                     return false;
-                }
             }
 
+            positions.Add(position);
             return true;
+        }
+
+        public static void ClearSpawnTracking()
+        {
+            SpawnedPositions.Clear();
         }
 
         public static void RegisterSpawn(
@@ -426,26 +425,9 @@ namespace PungusSouls
         [HarmonyPostfix]
         private static void Postfix()
         {
+            ResourceSpawnManager.ClearSpawnTracking();
             ResourceSpawnManager.RegisterPending();
         }
-    }
-
-
-    [HarmonyPatch(typeof(ZoneSystem), "PlaceVegetation")]
-    public static class PlaceVegetationPatch
-    {
-        [HarmonyTranspiler]
-        private static IEnumerable<CodeInstruction>
-            Transpiler(
-                IEnumerable<CodeInstruction> instructions)
-        {
-            var code =
-                new List<CodeInstruction>(
-                    instructions);
-
-            return code;
-        }
-
     }
 
 }

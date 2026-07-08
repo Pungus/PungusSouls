@@ -170,6 +170,8 @@
     <Compile Include="CompanionFramework\Patches\AgentJumpGuardPatch.cs" />
     <Compile Include="CompanionFramework\Patches\AgentNpcRuntimeHotfixes.cs" />
     <Compile Include="CompanionFramework\Patches\AgentRestedFireplaceSafetyPatch.cs" />
+    <Compile Include="Managers\Patches\InventoryGuiUpgradeMapPatch.cs" />
+    <Compile Include="Managers\Patches\PlaceVegitationPatch.cs" />
     <Compile Include="Managers\Patches\UpgradeMaps.cs" />
     <Compile Include="Managers\Patches\UpgradeTiers.cs" />
     <Compile Include="Managers\Patches\WeaponUpgradeRequirementTables.cs" />
@@ -177,6 +179,7 @@
     <Compile Include="Managers\ResourceSpawnManager.cs" />
     <Compile Include="PungusTools\BonfireController.cs" />
     <Compile Include="PungusTools\BonfireManager.cs" />
+    <Compile Include="PungusTools\BonfireMapPinPatch.cs" />
     <Compile Include="PungusTools\ClearAreasNew.cs" />
     <Compile Include="CompanionFramework\Core\Agent\AgentBrain.cs" />
     <Compile Include="CompanionFramework\Core\Agent\AgentContext.cs" />
@@ -271,6 +274,7 @@
     <EmbeddedResource Include="assets\icons\sweetshalquoir_map.png" />
     <EmbeddedResource Include="assets\icons\sweetshalquoir_hud.png" />
     <EmbeddedResource Include="assets\icons\sif_hud.png" />
+    <EmbeddedResource Include="assets\icons\bonfireicon.png" />
     <Content Include="icons\README.txt" />
     <Content Include="ILRepack.targets" />
     <Content Include="Libs\CreatureManager.dll">

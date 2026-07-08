@@ -157,10 +157,11 @@ namespace PungusSouls
                                     "FlametalNew",
                                     5)
                             }
-                        }                 
+                        }
                     }
                 });
-            new UpgradeMap
+            UpgradeMapRegistry.Register(
+                new UpgradeMap
             {
                 Name = "Tier2",
 
@@ -288,7 +289,8 @@ namespace PungusSouls
                             }
                         }
                     }
-            };
+            });
+            UpgradeMapRegistry.Register(
                 new UpgradeMap
                 {
                     Name = "Tier3",
@@ -396,7 +398,8 @@ namespace PungusSouls
                             }
                         }                 
                     }
-                };
+                });
+            UpgradeMapRegistry.Register(
                 new UpgradeMap
                 {
                     Name = "Tier4",
@@ -485,7 +488,8 @@ namespace PungusSouls
                             }
                         }
                     }
-                };
+                });
+            UpgradeMapRegistry.Register(
                 new UpgradeMap
                 {
                     Name = "Tier5",
@@ -554,7 +558,8 @@ namespace PungusSouls
                             }
                         }           
                     }
-                };
+                });
+            UpgradeMapRegistry.Register(
                 new UpgradeMap
                 {
                     Name = "Tier6",
@@ -602,7 +607,7 @@ namespace PungusSouls
                             }
                         }                 
                     }
-                };
+                });
 
         }
     }
