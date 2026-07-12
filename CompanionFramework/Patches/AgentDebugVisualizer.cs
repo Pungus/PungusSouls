@@ -45,11 +45,80 @@ public class AgentDebugVisualizer : MonoBehaviour
         if (_instance == this)
             _instance = null;
     }
+    private void RunInteractionRaycastProbe()
+    {
+        Debug.Log("[PungusSouls] F9 interaction raycast probe fired");
 
+        if (Player.m_localPlayer == null)
+        {
+            Debug.Log("[PungusSouls] No local player");
+            return;
+        }
+
+        if (GameCamera.instance == null)
+        {
+            Debug.Log("[PungusSouls] No GameCamera.instance");
+            return;
+        }
+
+        Camera camera = Utils.GetMainCamera();
+
+        if (camera == null)
+        {
+            Debug.Log("[PungusSouls] No main camera");
+            return;
+        }
+
+        Ray ray = camera.ScreenPointToRay(Input.mousePosition);
+
+        if (!Physics.Raycast(ray, out RaycastHit hit, 50f))
+        {
+            Debug.Log("[PungusSouls] Raycast hit nothing");
+            return;
+        }
+
+        GameObject hitObject = hit.collider.gameObject;
+
+        Debug.Log("[PungusSouls] Hit object: " + GetPath(hitObject.transform));
+        Debug.Log("[PungusSouls] Hit layer: " + hitObject.layer);
+        Debug.Log("[PungusSouls] Hit collider: " + hit.collider.GetType().FullName);
+
+        foreach (Component component in hitObject.GetComponents<Component>())
+        {
+            Debug.Log("[PungusSouls] Hit component: " + component.GetType().FullName);
+
+            if (component is Hoverable)
+                Debug.Log("[PungusSouls] Hit Hoverable: " + component.GetType().FullName);
+
+            if (component is Interactable)
+                Debug.Log("[PungusSouls] Hit Interactable: " + component.GetType().FullName);
+        }
+
+        Transform parent = hitObject.transform.parent;
+
+        while (parent != null)
+        {
+            Debug.Log("[PungusSouls] Parent: " + GetPath(parent));
+
+            foreach (Component component in parent.GetComponents<Component>())
+            {
+                if (component is Hoverable)
+                    Debug.Log("[PungusSouls] Parent Hoverable: " + component.GetType().FullName);
+
+                if (component is Interactable)
+                    Debug.Log("[PungusSouls] Parent Interactable: " + component.GetType().FullName);
+            }
+
+            parent = parent.parent;
+        }
+    }
     private void Update()
     {
         if (Input.GetKeyDown(KeyCode.F8))
             Toggle();
+
+        if (Input.GetKeyDown(KeyCode.F9))
+            RunInteractionRaycastProbe();
 
         if (!_enabled)
         {
@@ -58,13 +127,13 @@ public class AgentDebugVisualizer : MonoBehaviour
         }
 
         _refreshTimer -= Time.deltaTime;
-
         if (_refreshTimer > 0f)
             return;
 
         _refreshTimer = RefreshInterval;
         Draw();
     }
+
 
     private void Draw()
     {
@@ -268,7 +337,21 @@ public class AgentDebugVisualizer : MonoBehaviour
         for (int i = 0; i < _lines.Count; i++)
             _lines[i].enabled = visible;
     }
+    private static string GetPath(Transform transform)
+    {
+        if (transform == null)
+            return "";
 
+        string path = transform.name;
+
+        while (transform.parent != null)
+        {
+            transform = transform.parent;
+            path = transform.name + "/" + path;
+        }
+
+        return path;
+    }
     private static FieldInfo FindField(System.Type type, string name)
     {
         while (type != null)

@@ -11,7 +11,7 @@ namespace PungusSouls
         private static bool _started;
         private static Vector3? _starterBonfirePosition;
 
-        private static void Postfix()
+/*        private static void Postfix()
         {
             if (_started)
             {
@@ -22,17 +22,18 @@ namespace PungusSouls
 
             ZoneSystem.instance.StartCoroutine(StarterBonfireLoop());
         }
-
+*/
         private static IEnumerator StarterBonfireLoop()
         {
             while (Player.m_localPlayer == null)
             {
                 yield return null;
             }
+            yield return new WaitForSeconds(5f);
 
             BonfireManager.Load();
+            BonfireManager.RefreshMapPins();
 
-            yield return new WaitForSeconds(5f);
 
             while (true)
             {
@@ -139,6 +140,7 @@ namespace PungusSouls
             return false;
         }
 
+
         private static void SpawnAt(Vector3 position)
         {
             GameObject prefab =
@@ -150,11 +152,16 @@ namespace PungusSouls
                 return;
             }
 
-            GameObject spawned =
-                Object.Instantiate(
-                    prefab,
-                    position,
-                    Quaternion.identity);
+            if (StarterBonfireExists(position))
+            {
+                Debug.Log("[Bonfire] Starter bonfire already exists");
+                return;
+            }
+
+            GameObject spawned = Object.Instantiate(
+                prefab,
+                position,
+                Quaternion.identity);
 
             spawned.name = "PS_Bonfire";
 
@@ -169,5 +176,6 @@ namespace PungusSouls
             Debug.Log($"[Bonfire] ZNetScene prefab found = {znPrefab != null}");
             Debug.Log($"[Bonfire] Spawned starter bonfire at {position}");
         }
+
     }
 }

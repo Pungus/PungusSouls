@@ -8,8 +8,6 @@ using UnityEngine;
 
 namespace PungusSouls
 {
-    
-
     public class ResourceSpawnDefinition
     {
         public GameObject Prefab;
@@ -32,14 +30,11 @@ namespace PungusSouls
         public int GroupSizeMax = 1;
         public float GroupRadius = 0f;
         public float GroundOffset = 0f;
-
         public float SpawnCountMin = 1f;
         public float SpawnCountMax = 3f;
         public float MinDistanceFromSame = 0f;
         public int ClusterMin = 1;
         public int ClusterMax = 1;
-
-
         public Heightmap.BiomeArea BiomeArea = Heightmap.BiomeArea.Everything;
     }
 
@@ -62,8 +57,6 @@ namespace PungusSouls
             public float ForestThresholdMax = 1f;
             public float GroundOffset = 0f;
 
-
-
             public ResourceSpawnGroupDefinition(string id)
             {
                 Id = string.IsNullOrEmpty(id) ? string.Empty : id.Trim();
@@ -79,8 +72,11 @@ namespace PungusSouls
                 GroupRadius = groupRadius;
             }
         }
+
         private static readonly List<ResourceSpawnDefinition> Pending = new List<ResourceSpawnDefinition>();
         private static readonly Dictionary<string, ResourceSpawnGroupDefinition> Groups = new Dictionary<string, ResourceSpawnGroupDefinition>(StringComparer.OrdinalIgnoreCase);
+        private static readonly Dictionary<string, ResourceSpawnDefinition> Definitions = new Dictionary<string, ResourceSpawnDefinition>(StringComparer.OrdinalIgnoreCase);
+        private static readonly Dictionary<string, List<Vector3>> SpawnedPositions = new Dictionary<string, List<Vector3>>(StringComparer.OrdinalIgnoreCase);
         private static bool Initialized;
         private static bool DefaultGroupsRegistered;
         private static bool GroundOffsetFieldWarningLogged;
@@ -100,16 +96,17 @@ namespace PungusSouls
 
             if (def == null)
             {
-                Debug.LogError("Resource spawn definition is null");
                 return;
             }
 
             if (def.Prefab == null)
             {
-                Debug.LogError("Resource prefab is null");
                 return;
             }
-
+            if (def.MinDistanceFromSame > 0f)
+            { 
+                def.OverrideGroupDensity = true; 
+            }
             if (!Initialized)
             {
                 Pending.Add(def);
@@ -125,7 +122,6 @@ namespace PungusSouls
 
             if (ZoneSystem.instance == null)
             {
-                Debug.LogError("ZoneSystem still not available");
                 return;
             }
 
@@ -137,16 +133,151 @@ namespace PungusSouls
             Pending.Clear();
         }
 
-        private static readonly Dictionary<string, ResourceSpawnDefinition>
-            Definitions = new(StringComparer.OrdinalIgnoreCase);
-
-        public static bool TryGetDefinition(
-            string prefabName,
-            out ResourceSpawnDefinition definition)
+        public static bool TryGetDefinition(string prefabName, out ResourceSpawnDefinition definition)
         {
-            return Definitions.TryGetValue(
-                prefabName,
-                out definition);
+            return Definitions.TryGetValue(prefabName, out definition);
+        }
+
+        public static ResourceSpawnDefinition GetDefinition(GameObject prefab)
+        {
+            if (prefab == null)
+                return null;
+
+            Definitions.TryGetValue(prefab.name, out ResourceSpawnDefinition definition);
+            return definition;
+        }
+
+        public static void ClearSpawnTracking()
+        {
+            SpawnedPositions.Clear();
+        }
+        private static bool IsTooCloseToTrackedPosition(
+    string prefabName,
+    Vector3 position,
+    float radius)
+        {
+            if (!SpawnedPositions.TryGetValue(prefabName, out List<Vector3> positions))
+                return false;
+
+            for (int i = 0; i < positions.Count; i++)
+            {
+                if (Vector3.Distance(positions[i], position) < radius)
+                    return true;
+            }
+
+            return false;
+        }
+
+        private static bool IsTooCloseToExistingInstance(
+            GameObject newInstance,
+            string prefabName,
+            Vector3 position,
+            float radius)
+        {
+            ZNetView[] views = UnityEngine.Object.FindObjectsOfType<ZNetView>();
+
+            for (int i = 0; i < views.Length; i++)
+            {
+                ZNetView view = views[i];
+
+                if (view == null || view.gameObject == null)
+                    continue;
+
+                GameObject existing = view.gameObject;
+
+                if (existing == newInstance)
+                    continue;
+
+                string existingName = NormalizePrefabName(existing.name);
+
+                if (!string.Equals(existingName, prefabName, StringComparison.OrdinalIgnoreCase))
+                    continue;
+
+                if (Vector3.Distance(existing.transform.position, position) < radius)
+                    return true;
+            }
+
+            return false;
+        }
+
+        private static void RegisterTrackedPosition(
+            string prefabName,
+            Vector3 position)
+        {
+            if (!SpawnedPositions.TryGetValue(prefabName, out List<Vector3> positions))
+            {
+                positions = new List<Vector3>();
+                SpawnedPositions[prefabName] = positions;
+            }
+
+            positions.Add(position);
+        }
+
+        private static string NormalizePrefabName(string name)
+        {
+            if (string.IsNullOrEmpty(name))
+                return string.Empty;
+
+            const string cloneSuffix = "(Clone)";
+
+            if (name.EndsWith(cloneSuffix, StringComparison.OrdinalIgnoreCase))
+                return name.Substring(0, name.Length - cloneSuffix.Length);
+
+            return name;
+        }
+        public static void HandlePlacedVegetation(
+            GameObject instance,
+            ZoneSystem.ZoneVegetation vegetation,
+            Vector3 position)
+        {
+            if (instance == null || vegetation == null || vegetation.m_prefab == null)
+                return;
+
+            string prefabName = vegetation.m_prefab.name;
+
+            if (!Definitions.TryGetValue(prefabName, out ResourceSpawnDefinition definition))
+                return;
+
+            if (definition.MinDistanceFromSame <= 0f)
+                return;
+
+            if (IsTooCloseToTrackedPosition(prefabName, position, definition.MinDistanceFromSame))
+            {
+                DestroySpawnedInstance(instance);
+                return;
+            }
+
+            if (IsTooCloseToExistingInstance(instance, prefabName, position, definition.MinDistanceFromSame))
+            {
+                Debug.Log("[PungusSouls] Removing too-close tracked " + prefabName);
+                Debug.Log("[PungusSouls] Removing too-close existing " + prefabName);
+                DestroySpawnedInstance(instance);
+                return;
+            }
+            Debug.Log(
+            "[PungusSouls] Checking " +
+            prefabName +
+            " at " +
+            position +
+            " MinDistanceFromSame=" +
+            definition.MinDistanceFromSame);
+            RegisterTrackedPosition(prefabName, position);
+        }
+
+        private static void DestroySpawnedInstance(GameObject instance)
+        {
+            if (instance == null)
+                return;
+
+            ZNetView zNetView = instance.GetComponent<ZNetView>();
+
+            if (zNetView != null && ZNetScene.instance != null)
+            {
+                ZNetScene.instance.Destroy(instance);
+                return;
+            }
+
+            UnityEngine.Object.Destroy(instance);
         }
 
         private static void RegisterDefaultGroups()
@@ -162,116 +293,57 @@ namespace PungusSouls
             RegisterGroup(new ResourceSpawnGroupDefinition("rare", 0f, 1f, 1, 1, 0f));
         }
 
-        public static ResourceSpawnDefinition GetDefinition(
-            GameObject prefab)
+        private static void AddVegetation(ResourceSpawnDefinition def)
         {
-            if (prefab == null)
-                return null;
-
-            Definitions.TryGetValue(
-                prefab.name,
-                out var definition);
-
-            return definition;
-        }
-
-
-        private static readonly Dictionary<string, List<Vector3>> SpawnedPositions =
-            new Dictionary<string, List<Vector3>>(StringComparer.OrdinalIgnoreCase);
-
-        public static bool TryReserveSpawnPosition(string prefabName, Vector3 position)
-        {
-            if (!Definitions.TryGetValue(prefabName, out ResourceSpawnDefinition definition))
-                return true;
-
-            if (definition.MinDistanceFromSame <= 0f)
-                return true;
-
-            if (!SpawnedPositions.TryGetValue(prefabName, out List<Vector3> positions))
+            if (ZoneSystem.instance == null)
             {
-                positions = new List<Vector3>();
-                SpawnedPositions[prefabName] = positions;
+                return;
             }
 
-            for (int i = 0; i < positions.Count; i++)
+            ResourceSpawnDefinition resolved = ResolveDefinition(def);
+            Debug.Log(
+            "[PungusSouls] Registering vegetation " +
+            resolved.Prefab.name +
+            " MinPerZone=" +
+            resolved.MinPerZone +
+            " MaxPerZone=" +
+            resolved.MaxPerZone +
+            " GroupSizeMin=" +
+            resolved.GroupSizeMin +
+            " GroupSizeMax=" +
+            resolved.GroupSizeMax +
+            " GroupRadius=" +
+            resolved.GroupRadius +
+            " MinDistanceFromSame=" +
+            resolved.MinDistanceFromSame);
+            ZoneSystem.ZoneVegetation veg = new ZoneSystem.ZoneVegetation
             {
-                if (Vector3.Distance(positions[i], position) < definition.MinDistanceFromSame)
-                    return false;
-            }
+                m_name = resolved.Prefab.name,
+                m_prefab = resolved.Prefab,
+                m_enable = true,
+                m_biome = resolved.Biome,
+                m_biomeArea = resolved.BiomeArea,
+                m_min = resolved.MinPerZone,
+                m_max = resolved.MaxPerZone,
+                m_minAltitude = resolved.MinAltitude,
+                m_maxAltitude = resolved.MaxAltitude,
+                m_minTilt = resolved.MinTilt,
+                m_maxTilt = resolved.MaxTilt,
+                m_inForest = resolved.InForest,
+                m_forestTresholdMin = resolved.ForestThresholdMin,
+                m_forestTresholdMax = resolved.ForestThresholdMax,
+                m_minTerrainDelta = resolved.MinTerrainDelta,
+                m_maxTerrainDelta = resolved.MaxTerrainDelta,
+                m_groupSizeMin = resolved.GroupSizeMin,
+                m_groupSizeMax = resolved.GroupSizeMax,
+                m_groupRadius = resolved.GroupRadius,
+                m_blockCheck = true
+            };
 
-            positions.Add(position);
-            return true;
+            ApplyGroundOffset(veg, resolved.GroundOffset);
+            ZoneSystem.instance.m_vegetation.Add(veg);
+            Definitions[resolved.Prefab.name] = resolved;
         }
-
-        public static void ClearSpawnTracking()
-        {
-            SpawnedPositions.Clear();
-        }
-
-        public static void RegisterSpawn(
-    string prefabName,
-    Vector3 position)
-        {
-            if (!SpawnedPositions.TryGetValue(
-                    prefabName,
-                    out var positions))
-            {
-                positions = new List<Vector3>();
-                SpawnedPositions[prefabName] = positions;
-            }
-
-            positions.Add(position);
-        }
-
-        private static bool HasResourceNearby(string prefabName,Vector3 position,float radius)
-        {
-            foreach (var znet in UnityEngine.Object.FindObjectsOfType<ZNetView>())
-            {
-                if (!znet.name.StartsWith(prefabName))
-                    continue;
-
-                if (Vector3.Distance(
-                        znet.transform.position,
-                        position) < radius)
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-        private static void AddVegetation(
-    ResourceSpawnDefinition def)
-{
-    ZoneSystem.ZoneVegetation veg =
-        new ZoneSystem.ZoneVegetation
-        {
-            m_name = def.Prefab.name,
-            m_prefab = def.Prefab,
-            m_enable = true,
-
-            m_biome = def.Biome,
-            m_biomeArea = def.BiomeArea,
-
-            m_min = def.MinPerZone,
-            m_max = def.MaxPerZone,
-
-            m_groupSizeMin = def.GroupSizeMin,
-            m_groupSizeMax = def.GroupSizeMax,
-            m_groupRadius = def.GroupRadius,
-
-            m_blockCheck = true
-        };
-        
-    ApplyGroundOffset(
-        veg,
-        def.GroundOffset);
-        
-    ZoneSystem.instance.m_vegetation.Add(veg);
-
-    Definitions[def.Prefab.name] = def;
-}
-
 
         private static ResourceSpawnDefinition ResolveDefinition(ResourceSpawnDefinition source)
         {
@@ -281,35 +353,53 @@ namespace PungusSouls
             if (!Groups.TryGetValue(groupId, out ResourceSpawnGroupDefinition group))
                 Groups.TryGetValue("solo", out group);
 
-            if (group == null)
+            if (group != null)
             {
-                ValidateDefinition(resolved);
-                return resolved;
+                if (!source.OverrideGroupDensity)
+                {
+                    resolved.MinPerZone = group.MinPerZone;
+                    resolved.MaxPerZone = group.MaxPerZone;
+                    resolved.GroupSizeMin = group.GroupSizeMin;
+                    resolved.GroupSizeMax = group.GroupSizeMax;
+                    resolved.GroupRadius = group.GroupRadius;
+                }
+
+                if (!source.OverrideGroupPlacement)
+                {
+                    resolved.MinTilt = group.MinTilt;
+                    resolved.MaxTilt = group.MaxTilt;
+                    resolved.InForest = group.InForest;
+                    resolved.ForestThresholdMin = group.ForestThresholdMin;
+                    resolved.ForestThresholdMax = group.ForestThresholdMax;
+                    resolved.MinTerrainDelta = group.MinTerrainDelta;
+                    resolved.MaxTerrainDelta = group.MaxTerrainDelta;
+                    resolved.GroundOffset = group.GroundOffset + source.GroundOffset;
+                }
             }
 
-            if (!source.OverrideGroupDensity)
-            {
-                resolved.MinPerZone = group.MinPerZone;
-                resolved.MaxPerZone = group.MaxPerZone;
-                resolved.GroupSizeMin = group.GroupSizeMin;
-                resolved.GroupSizeMax = group.GroupSizeMax;
-                resolved.GroupRadius = group.GroupRadius;
-            }
-
-            if (!source.OverrideGroupPlacement)
-            {
-                resolved.MinTilt = group.MinTilt;
-                resolved.MaxTilt = group.MaxTilt;
-                resolved.InForest = group.InForest;
-                resolved.ForestThresholdMin = group.ForestThresholdMin;
-                resolved.ForestThresholdMax = group.ForestThresholdMax;
-                resolved.MinTerrainDelta = group.MinTerrainDelta;
-                resolved.MaxTerrainDelta = group.MaxTerrainDelta;
-                resolved.GroundOffset = group.GroundOffset + source.GroundOffset;
-            }
-
+            ApplyAliasFields(source, resolved);
             ValidateDefinition(resolved);
             return resolved;
+        }
+
+        private static void ApplyAliasFields(ResourceSpawnDefinition source, ResourceSpawnDefinition resolved)
+        {
+            if (!Approximately(source.SpawnCountMin, 1f) || !Approximately(source.SpawnCountMax, 3f))
+            {
+                resolved.MinPerZone = source.SpawnCountMin;
+                resolved.MaxPerZone = source.SpawnCountMax;
+            }
+
+            if (source.ClusterMin != 1 || source.ClusterMax != 1)
+            {
+                resolved.GroupSizeMin = source.ClusterMin;
+                resolved.GroupSizeMax = source.ClusterMax;
+            }
+        }
+
+        private static bool Approximately(float a, float b)
+        {
+            return Mathf.Abs(a - b) <= 0.0001f;
         }
 
         private static ResourceSpawnDefinition Copy(ResourceSpawnDefinition source)
@@ -336,6 +426,11 @@ namespace PungusSouls
                 GroupSizeMax = source.GroupSizeMax,
                 GroupRadius = source.GroupRadius,
                 GroundOffset = source.GroundOffset,
+                SpawnCountMin = source.SpawnCountMin,
+                SpawnCountMax = source.SpawnCountMax,
+                MinDistanceFromSame = source.MinDistanceFromSame,
+                ClusterMin = source.ClusterMin,
+                ClusterMax = source.ClusterMax,
                 BiomeArea = source.BiomeArea
             };
         }
@@ -354,7 +449,6 @@ namespace PungusSouls
             if (!GroundOffsetFieldWarningLogged)
             {
                 GroundOffsetFieldWarningLogged = true;
-                Debug.LogWarning("ResourceSpawnManager could not find a ground-offset field on ZoneSystem.ZoneVegetation. GroundOffset values will be ignored by this Valheim build.");
             }
         }
 
@@ -376,10 +470,7 @@ namespace PungusSouls
         {
             while (type != null)
             {
-                FieldInfo field = type.GetField(
-                    fieldName,
-                    BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic
-                );
+                FieldInfo field = type.GetField(fieldName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
 
                 if (field != null)
                     return field;
@@ -416,6 +507,85 @@ namespace PungusSouls
             def.ForestThresholdMin = Mathf.Clamp01(def.ForestThresholdMin);
             def.ForestThresholdMax = Mathf.Clamp01(Mathf.Max(def.ForestThresholdMin, def.ForestThresholdMax));
             def.MaxTerrainDelta = Mathf.Max(def.MinTerrainDelta, def.MaxTerrainDelta);
+            def.MinDistanceFromSame = Mathf.Max(0f, def.MinDistanceFromSame);
+        }
+    }
+
+    [HarmonyPatch]
+    public static class PlaceVegetationPatch
+    {
+        private const int VegetationLocalIndex = 4;
+        private const int PositionLocalIndex = 17;
+
+        private static MethodBase TargetMethod()
+        {
+            return AccessTools.Method(typeof(ZoneSystem), "PlaceVegetation");
+        }
+
+        [HarmonyPrepare]
+        private static bool Prepare()
+        {
+            MethodBase method = TargetMethod();
+
+            if (method == null)
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        [HarmonyTranspiler]
+        private static IEnumerable<CodeInstruction> Transpiler(IEnumerable<CodeInstruction> instructions)
+        {
+            List<CodeInstruction> code = instructions.ToList();
+
+            MethodInfo instantiateMethod = AccessTools.Method(
+                typeof(UnityEngine.Object),
+                nameof(UnityEngine.Object.Instantiate),
+                new[]
+                {
+                    typeof(GameObject),
+                    typeof(Vector3),
+                    typeof(Quaternion)
+                });
+
+            MethodInfo handleMethod = AccessTools.Method(
+                typeof(ResourceSpawnManager),
+                nameof(ResourceSpawnManager.HandlePlacedVegetation));
+
+            if (instantiateMethod == null || handleMethod == null)
+            {
+                return code;
+            }
+
+            List<int> instantiateIndexes = new List<int>();
+
+            for (int i = 0; i < code.Count; i++)
+            {
+                if (code[i].Calls(instantiateMethod))
+                    instantiateIndexes.Add(i);
+            }
+
+            if (instantiateIndexes.Count == 0)
+            {
+                return code;
+            }
+
+            for (int i = instantiateIndexes.Count - 1; i >= 0; i--)
+            {
+                int insertIndex = instantiateIndexes[i] + 1;
+
+                code.InsertRange(insertIndex, new[]
+                {
+                    new CodeInstruction(OpCodes.Dup),
+                    new CodeInstruction(OpCodes.Ldloc_S, VegetationLocalIndex),
+                    new CodeInstruction(OpCodes.Ldloc_S, PositionLocalIndex),
+                    new CodeInstruction(OpCodes.Call, handleMethod)
+                });
+            }
+
+            return code;
         }
     }
 
@@ -429,5 +599,4 @@ namespace PungusSouls
             ResourceSpawnManager.RegisterPending();
         }
     }
-
 }

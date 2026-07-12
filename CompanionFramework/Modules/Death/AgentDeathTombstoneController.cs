@@ -12,7 +12,7 @@ namespace Modules.Death
     public static class AgentDeathTombstoneController
     {
         private const string AgentSkillsKey = "agent_skills_v1";
-        /*private static GameObject GetTombstonePrefab(AgentComponent agent)
+        private static GameObject GetTombstonePrefab(AgentComponent agent)
         {
             AgentPrefabProfile profile = agent != null ? agent.GetComponent<AgentPrefabProfile>() : null;
 
@@ -35,7 +35,7 @@ namespace Modules.Death
                 return fallback;
 
             return FindPrefab("TombStone");
-        }*/
+        }
 
         private static GameObject FindPrefab(string prefabName)
         {
@@ -311,26 +311,54 @@ namespace Modules.Death
         {
             private static void Postfix(ZNetScene __instance)
             {
-                GameObject prefab =
-                    PungusSoulsPlugin.assetBundle.LoadAsset<GameObject>(
-                        "sif_tombstone");
-
-                if (prefab == null)
+                try
                 {
-                    Debug.LogError(
-                        "[Souls] Failed to load sif_tombstone");
-                    return;
-                }
+                    if (__instance == null)
+                    {
+                        Debug.LogError("[Souls] ZNetScene instance was null");
+                        return;
+                    }
 
-                if (!__instance.m_prefabs.Contains(prefab))
+                    if (__instance.m_prefabs == null)
+                    {
+                        Debug.LogError("[Souls] ZNetScene m_prefabs was null");
+                        return;
+                    }
+
+                    if (PungusSoulsPlugin.asset == null)
+                    {
+                        Debug.LogError("[Souls] AssetBundle was null while loading sif_tombstone");
+                        return;
+                    }
+
+                    GameObject prefab = PungusSoulsPlugin.asset.LoadAsset<GameObject>("sif_tombstone");
+
+                    if (prefab == null)
+                    {
+                        Debug.LogError("[Souls] Failed to load sif_tombstone");
+                        return;
+                    }
+
+                    if (!__instance.m_prefabs.Contains(prefab))
+                    {
+                        __instance.m_prefabs.Add(prefab);
+                        Debug.Log("[Souls] Added tombstone prefab to ZNetScene m_prefabs: " + prefab.name);
+                    }
+
+                    int stableHashCode = prefab.name.GetStableHashCode();
+
+                    if (__instance.m_namedPrefabs != null && !__instance.m_namedPrefabs.ContainsKey(stableHashCode))
+                    {
+                        __instance.m_namedPrefabs.Add(stableHashCode, prefab);
+                        Debug.Log("[Souls] Added tombstone prefab to ZNetScene m_namedPrefabs: " + prefab.name);
+                    }
+
+                    Debug.Log("[Souls] Registered tombstone prefab: " + prefab.name);
+                }
+                catch (Exception ex)
                 {
-                    __instance.m_prefabs.Add(prefab);
+                    Debug.LogError("[Souls] CustomPrefabPatch failed: " + ex);
                 }
-
-                Debug.Log(
-                    "[Souls] Registered tombstone prefab: " +
-                    prefab.name);
-
             }
         }
 

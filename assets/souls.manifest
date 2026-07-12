@@ -1,16 +1,16 @@
 ManifestFileVersion: 0
 UnityVersion: 6000.0.76f1
-CRC: 3504454982
+CRC: 1722364664
 Hashes:
   AssetFileHash:
     serializedVersion: 2
-    Hash: d0dcff81132b6fe66e45616a101bb9e3
+    Hash: 2d429aec43f729a0262d02311d162bcd
   TypeTreeHash:
     serializedVersion: 2
-    Hash: 19a35c73e16ee07ee33bb7c1cf5b1b4f
+    Hash: a4afb2cf657a77508d8002206df69e47
   IncrementalBuildHash:
     serializedVersion: 2
-    Hash: e19b1b002e4229fc6bf673749027dacb
+    Hash: a9aeb70a096d4c97168db6448e273728
 HashAppended: 0
 ClassTypes:
 - Class: 1
@@ -62,11 +62,15 @@ ClassTypes:
 - Class: 114
   Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
 - Class: 114
+  Script: {fileID: 11500000, guid: 94acf543edc444240b437a81a6b1c4b5, type: 3}
+- Class: 114
+  Script: {fileID: 11500000, guid: fe9e90909ce37fd448bda84651150dc7, type: 3}
+- Class: 114
   Script: {fileID: 11500000, guid: 71c1514a6bd24e1e882cebbe1904ce04, type: 3}
 - Class: 114
   Script: {fileID: 11500000, guid: 42c73e08da3c4b24b87fbd252928d807, type: 3}
 - Class: 114
-  Script: {fileID: 11500000, guid: 5527202a716cd9c419500dbae2860262, type: 3}
+  Script: {fileID: -866236644, guid: 723cde4087caa75bc7e160bd19cde5d6, type: 3}
 - Class: 114
   Script: {fileID: 2140874873, guid: c1b78fa918b030faf1c1f6f6164daeb2, type: 3}
 - Class: 114
@@ -84,11 +88,15 @@ ClassTypes:
 - Class: 114
   Script: {fileID: -1383431051, guid: c1b78fa918b030faf1c1f6f6164daeb2, type: 3}
 - Class: 114
+  Script: {fileID: -1463640641, guid: c1b78fa918b030faf1c1f6f6164daeb2, type: 3}
+- Class: 114
   Script: {fileID: -1266444067, guid: c1b78fa918b030faf1c1f6f6164daeb2, type: 3}
 - Class: 114
   Script: {fileID: -1421768954, guid: c1b78fa918b030faf1c1f6f6164daeb2, type: 3}
 - Class: 114
   Script: {fileID: -1094038755, guid: c1b78fa918b030faf1c1f6f6164daeb2, type: 3}
+- Class: 114
+  Script: {fileID: 901333681, guid: c1b78fa918b030faf1c1f6f6164daeb2, type: 3}
 - Class: 114
   Script: {fileID: -116317528, guid: c1b78fa918b030faf1c1f6f6164daeb2, type: 3}
 - Class: 114
@@ -116,7 +124,13 @@ ClassTypes:
 - Class: 114
   Script: {fileID: -1044604064, guid: c1b78fa918b030faf1c1f6f6164daeb2, type: 3}
 - Class: 114
+  Script: {fileID: -870746866, guid: c1b78fa918b030faf1c1f6f6164daeb2, type: 3}
+- Class: 114
+  Script: {fileID: -697670096, guid: c1b78fa918b030faf1c1f6f6164daeb2, type: 3}
+- Class: 114
   Script: {fileID: 927819712, guid: c1b78fa918b030faf1c1f6f6164daeb2, type: 3}
+- Class: 114
+  Script: {fileID: 1290261775, guid: c1b78fa918b030faf1c1f6f6164daeb2, type: 3}
 - Class: 114
   Script: {fileID: 1404409730, guid: c1b78fa918b030faf1c1f6f6164daeb2, type: 3}
 - Class: 114
@@ -130,11 +144,15 @@ ClassTypes:
 - Class: 114
   Script: {fileID: 1559923330, guid: c1b78fa918b030faf1c1f6f6164daeb2, type: 3}
 - Class: 114
+  Script: {fileID: -1693878703, guid: c1b78fa918b030faf1c1f6f6164daeb2, type: 3}
+- Class: 114
   Script: {fileID: 313648218, guid: c1b78fa918b030faf1c1f6f6164daeb2, type: 3}
 - Class: 114
   Script: {fileID: 963225042, guid: c1b78fa918b030faf1c1f6f6164daeb2, type: 3}
 - Class: 114
   Script: {fileID: 825357479, guid: c1b78fa918b030faf1c1f6f6164daeb2, type: 3}
+- Class: 114
+  Script: {fileID: 2106984268, guid: c1b78fa918b030faf1c1f6f6164daeb2, type: 3}
 - Class: 114
   Script: {fileID: 368864397, guid: c1b78fa918b030faf1c1f6f6164daeb2, type: 3}
 - Class: 114
@@ -152,11 +170,17 @@ ClassTypes:
 - Class: 114
   Script: {fileID: -1610353820, guid: c1b78fa918b030faf1c1f6f6164daeb2, type: 3}
 - Class: 114
+  Script: {fileID: -1787775113, guid: c1b78fa918b030faf1c1f6f6164daeb2, type: 3}
+- Class: 114
+  Script: {fileID: -542771298, guid: c1b78fa918b030faf1c1f6f6164daeb2, type: 3}
+- Class: 114
   Script: {fileID: 1790797106, guid: c1b78fa918b030faf1c1f6f6164daeb2, type: 3}
 - Class: 114
   Script: {fileID: 489050665, guid: c1b78fa918b030faf1c1f6f6164daeb2, type: 3}
 - Class: 114
   Script: {fileID: -347224168, guid: c1b78fa918b030faf1c1f6f6164daeb2, type: 3}
+- Class: 114
+  Script: {fileID: 1107262255, guid: c1b78fa918b030faf1c1f6f6164daeb2, type: 3}
 - Class: 114
   Script: {fileID: -391423902, guid: c1b78fa918b030faf1c1f6f6164daeb2, type: 3}
 - Class: 114
@@ -184,7 +208,11 @@ ClassTypes:
 - Class: 114
   Script: {fileID: -1031772151, guid: c1b78fa918b030faf1c1f6f6164daeb2, type: 3}
 - Class: 114
+  Script: {fileID: -1760958936, guid: c1b78fa918b030faf1c1f6f6164daeb2, type: 3}
+- Class: 114
   Script: {fileID: 2094620348, guid: c1b78fa918b030faf1c1f6f6164daeb2, type: 3}
+- Class: 114
+  Script: {fileID: 313814881, guid: c1b78fa918b030faf1c1f6f6164daeb2, type: 3}
 - Class: 114
   Script: {fileID: 1697414741, guid: c1b78fa918b030faf1c1f6f6164daeb2, type: 3}
 - Class: 114
@@ -194,9 +222,15 @@ ClassTypes:
 - Class: 114
   Script: {fileID: -2060124386, guid: c1b78fa918b030faf1c1f6f6164daeb2, type: 3}
 - Class: 114
+  Script: {fileID: -623399428, guid: c1b78fa918b030faf1c1f6f6164daeb2, type: 3}
+- Class: 114
   Script: {fileID: 1214644819, guid: c1b78fa918b030faf1c1f6f6164daeb2, type: 3}
 - Class: 114
+  Script: {fileID: 467341898, guid: c1b78fa918b030faf1c1f6f6164daeb2, type: 3}
+- Class: 114
   Script: {fileID: -201937006, guid: c1b78fa918b030faf1c1f6f6164daeb2, type: 3}
+- Class: 114
+  Script: {fileID: -1931244258, guid: c1b78fa918b030faf1c1f6f6164daeb2, type: 3}
 - Class: 114
   Script: {fileID: 1516789100, guid: c1b78fa918b030faf1c1f6f6164daeb2, type: 3}
 - Class: 114
@@ -204,19 +238,17 @@ ClassTypes:
 - Class: 114
   Script: {fileID: 352408758, guid: c1b78fa918b030faf1c1f6f6164daeb2, type: 3}
 - Class: 114
+  Script: {fileID: -1400890846, guid: c1b78fa918b030faf1c1f6f6164daeb2, type: 3}
+- Class: 114
+  Script: {fileID: -1081985495, guid: c1b78fa918b030faf1c1f6f6164daeb2, type: 3}
+- Class: 114
+  Script: {fileID: -1275016705, guid: c1b78fa918b030faf1c1f6f6164daeb2, type: 3}
+- Class: 114
+  Script: {fileID: -2017613423, guid: c1b78fa918b030faf1c1f6f6164daeb2, type: 3}
+- Class: 114
   Script: {fileID: 895252998, guid: c1b78fa918b030faf1c1f6f6164daeb2, type: 3}
 - Class: 114
   Script: {fileID: 2147295275, guid: aaa0ed75dbd51816d4c6f00ab5b0fdcf, type: 3}
-- Class: 114
-  Script: {fileID: 1521249158, guid: ff2698d46ef49fa4493291866e6bf1d4, type: 3}
-- Class: 114
-  Script: {fileID: 469224316, guid: ff2698d46ef49fa4493291866e6bf1d4, type: 3}
-- Class: 114
-  Script: {fileID: -1044604064, guid: ff2698d46ef49fa4493291866e6bf1d4, type: 3}
-- Class: 114
-  Script: {fileID: 313648218, guid: ff2698d46ef49fa4493291866e6bf1d4, type: 3}
-- Class: 114
-  Script: {fileID: 1404409730, guid: ff2698d46ef49fa4493291866e6bf1d4, type: 3}
 - Class: 115
   Script: {instanceID: 0}
 - Class: 128
@@ -268,6 +300,8 @@ ClassTypes:
 - Class: 1953259897
   Script: {instanceID: 0}
 SerializeReferenceClassIdentifiers:
+- AssemblyName: PungusSouls
+  ClassName: PungusSouls.NpcGiveItemController/UseItemEntry
 - AssemblyName: Unity.TextMeshPro
   ClassName: TMPro.FaceInfo_Legacy
 - AssemblyName: Unity.TextMeshPro
@@ -333,6 +367,8 @@ SerializeReferenceClassIdentifiers:
 - AssemblyName: assembly_valheim
   ClassName: LevelEffects/LevelSetup
 - AssemblyName: assembly_valheim
+  ClassName: MaterialVariationSettings
+- AssemblyName: assembly_valheim
   ClassName: Piece/Requirement
 - AssemblyName: assembly_valheim
   ClassName: RandomAnimation/RandomValue
@@ -342,10 +378,13 @@ SerializeReferenceClassIdentifiers:
   ClassName: SpawnArea/SpawnData
 - AssemblyName: assembly_valheim
   ClassName: Trader/TradeItem
+- AssemblyName: assembly_valheim
+  ClassName: Vegvisir/VegvisrLocation
 Assets:
 - Assets/1Proj/wep/RingKnightGreatSwords/GS_Sprint_Forward.anim
 - Assets/test/Fang Boar/sfx_fangboar_alert.prefab
 - Assets/test/cat/sfx_cat_attack.prefab
+- Assets/test/Andre/DivineEmber_Item_tier3.prefab
 - Assets/test/Crystal Golem/Golem_Unarmed2.prefab
 - Assets/1Proj/Titanite/titanite_vein_1.prefab
 - Assets/1Proj/wep/Glordsword.prefab
@@ -361,14 +400,17 @@ Assets:
 - Assets/1Proj/Titanite/LargeTitaniteShard.prefab
 - Assets/1Proj/wep/DragonSlayerSpear.prefab
 - Assets/test/Ornstein the Dragonslayer/Ornstein_JumpSlash.prefab
+- Assets/test/Andre/DarkEmber_Item_tier4.prefab
 - Assets/1Proj/wep/Artorias Set/ArtHelm.prefab
 - Assets/1Proj/wep/lantern.prefab
 - Assets/1Proj/wep/Great Lord Greatsword/GreatLordGreatSword.prefab
+- Assets/1Proj/wep/buff_fire.prefab
 - Assets/test/hellkite drake/hellkitedrakeattack2.prefab
 - Assets/1Proj/wep/Dragonslayer Greatbow/DragonSlayerGreatBow.prefab
 - Assets/test/Fang Boar/sfx_fangboar_idle.prefab
 - Assets/test/capra/sfx_capra_attack.prefab
 - Assets/1Proj/wep/Abyss Greatsword/AbyssGreatswordAttack2.anim
+- Assets/test/Fang Boar/FangBoarBoss.prefab
 - Assets/1Proj/export/firelinkshrine_sfx.prefab
 - Assets/1Proj/Titanite/DemonTitanite.prefab
 - Assets/test/Ornstein the Dragonslayer/Ornstein_Thrust2.prefab
@@ -387,25 +429,27 @@ Assets:
 - Assets/test/Blue wyvern xps/sfx_wyvern_dead.prefab
 - Assets/1Proj/Titanite/Titanite_Sword_Loc_1.prefab
 - Assets/1Proj/wep/RingKnightGreatSwords/GS_Strafe_Left_Slow.anim
+- Assets/GameObject/RuneStone_Mistlands_bosshint.prefab
 - Assets/test/hellkite drake/HellkiteDrake.prefab
 - Assets/MonoBehaviour/SetEffect_HavelSet.asset
 - Assets/1Proj/wep/Havel's Greatshield/HavelGreatShield.prefab
 - Assets/test/carvings/HelpmeCarving.prefab
+- Assets/1Proj/Locations/newlondo.prefab
 - Assets/creatures/Trident_AOE.prefab
 - Assets/1Proj/wep/Drake Sword/DrakeSword.prefab
 - Assets/test/Blue wyvern xps/sfx_wyvern_hit.prefab
+- Assets/1Proj/export/anorlondo.prefab
 - Assets/1Proj/wep/grasscrestshield/GrassCrestShield.prefab
 - Assets/1Proj/wep/BlackKnightUGS.prefab
 - Assets/1Proj/wep/Curvedsword1.anim
 - Assets/test/Taurus Demon/TaurusWep.prefab
 - Assets/1Proj/wep/buff_lightning.prefab
 - Assets/test/Blue wyvern xps/sfx_wyvern_alert.prefab
-- Assets/Mega Fantasy Props Pack/Prefabs/Storage/chest3.prefab
 - Assets/test/Andre/sfx_Andre_bye3.prefab
 - Assets/test/cat/Cat_bite.prefab
 - Assets/test/Crystal Golem/CrystalGolem.prefab
 - Assets/1Proj/wep/MLGS/MLGS_Projectile_New.prefab
-- Assets/test/Giant Skeleton/Skeleton_Attack_4.prefab
+- Assets/test/Fang Boar/BoarCompanionSpawn.prefab
 - Assets/test/Blue wyvern xps/Wyvern_Bite.prefab
 - Assets/test/Dark Souls - Giant Dad/BlackFlame_AOE.prefab
 - Assets/1Proj/wep/Ultragreatsword_Attack3.anim
@@ -424,7 +468,6 @@ Assets:
 - Assets/1Proj/wep/RingKnightGreatSwords/RKPG_Attack_2.anim
 - Assets/test/WolfCharm.prefab
 - Assets/1Proj/wep/Gold Tracer/Dualswords1.anim
-- Assets/test/Giant Skeleton/Skeleton_Attack_3.prefab
 - Assets/test/Fang Boar/FangBoar.prefab
 - Assets/1Proj/wep/BuffWeapon.anim
 - Assets/Red_Deer/Cats/Cat_Stray/CatStray/FBX/Anim/Arm_Cat_Sit_end.anim
@@ -440,10 +483,9 @@ Assets:
 - Assets/test/capra/sfx_capra_swing.prefab
 - Assets/test/carvings/sfx_verygood.prefab
 - Assets/test/Andre/Bye3.mp3
-- Assets/test/Giant Skeleton/Skeleton_Attack_6.prefab
+- Assets/1Proj/wep/Greatsword/BerserkGreatsword.prefab
 - Assets/test/cat/Cat_bap.prefab
 - Assets/1Proj/wep/RingKnightGreatSwords/GS_Strafe_Right_Slow.anim
-- Assets/1Proj/wep/Greatsword/BerserkGreatsword.prefab
 - Assets/test/cat/CatCharm.prefab
 - Assets/test/Andre/talk3.mp3
 - Assets/1Proj/wep/Abyss Greatsword/Straightsword_1.anim
@@ -474,11 +516,12 @@ Assets:
 - Assets/test/Altar of Sunlight/Nameless king statue/NamelessStatue.prefab
 - Assets/1Proj/wep/havel set/HavelLegs.prefab
 - Assets/test/cat/Cat_AttackP3.prefab
+- Assets/test/Andre/DullEmber_item_tier1.prefab
 - Assets/1Proj/Titanite/MineRock_TwinklingTitanite.prefab
 - Assets/1Proj/Titanite/titanite_giant_helmet_tier2.prefab
 - Assets/1Proj/Titanite/WhiteTitanite.prefab
+- Assets/1Proj/wep/grasscrestshield/SE_Firebuff.asset
 - Assets/test/BlackKnight ds3/sfx_blackknight_hit.prefab
-- Assets/test/Giant Skeleton/Skeleton_Attack_8.prefab
 - Assets/test/Mushroom/GiantMushroom.prefab
 - Assets/1Proj/wep/Zweihander/ChaosZweihander.prefab
 - Assets/test/carvings/ImsorryCarving.prefab
@@ -488,6 +531,7 @@ Assets:
 - Assets/1Proj/Titanite/Titanite_Giant.prefab
 - Assets/test/Fang Boar/sfx_fangboar_dead.prefab
 - Assets/1Proj/wep/Dragon King Greataxe/DragonKingGreatAxe.prefab
+- Assets/test/Andre/CrystalEmber_Item_tier7.prefab
 - Assets/test/hellkite drake/vfx_drake_breath.prefab
 - Assets/test/Crystal Golem/sfx_crystalgolem_hurt.prefab
 - Assets/1Proj/wep/Black Iron Greatshield/BlackIronShield.prefab
@@ -499,9 +543,11 @@ Assets:
 - Assets/test/sif/Sif_attack_spinjump.prefab
 - Assets/1Proj/wep/Ultragreatsword_attack1.anim
 - Assets/1Proj/wep/Silver Knight Spear/SilverKnightSpear1.prefab
+- Assets/test/Andre/CrystalEmber_tier7.prefab
 - Assets/test/hellkite drake/hellkitebreath.prefab
 - Assets/1Proj/wep/sunshield1.prefab
 - Assets/Red_Deer/Cats/Cat_Stray/CatStray/FBX/Anim/cat_sleep.anim
+- Assets/1Proj/wep/buff_poison.prefab
 - Assets/test/bonfire/PS_Bonfire_Loc.prefab
 - Assets/test/sif/Sif_attack1_vert.prefab
 - Assets/test/Asylum Demon/DemonGreatHammer2.prefab
@@ -518,6 +564,7 @@ Assets:
 - Assets/1Proj/wep/ArcaneStone.prefab
 - Assets/1Proj/wep/grasscrestshield/SE_Lightningbuff.asset
 - Assets/1Proj/wep/Dragonslayer Greatbow/Greatbow_fire.anim
+- Assets/test/LightningSpear_Projectile2.prefab
 - Assets/1Proj/Titanite/TitaniteChunk.prefab
 - Assets/Red_Deer/Cats/Cat_Stray/CatStray/FBX/Anim/Arm_Cat_Attack_down.anim
 - Assets/test/carvings/sfx_hello.prefab
@@ -525,11 +572,13 @@ Assets:
 - Assets/test/carvings/projectile_imsorry.prefab
 - Assets/RyanReos_QueenMarika/spawn_marikameteors.prefab
 - Assets/1Proj/wep/Greatsword_Attack3.anim
+- Assets/test/Andre/DullEmber_tier1.prefab
+- Assets/test/Andre/GiantsEmber_tier8.prefab
 - Assets/test/Andre/Talk1.mp3
-- Assets/1Proj/Titanite/TitaniteSlab.prefab
 - Assets/test/Crystal Golem/Golem_Unarmed3.prefab
-- Assets/test/Taurus Demon/sfx_taurus_weaponhit1.prefab
+- Assets/1Proj/Titanite/TitaniteSlab.prefab
 - Assets/test/Andre/sfx_Andre_greeting1.prefab
+- Assets/test/Taurus Demon/sfx_taurus_weaponhit1.prefab
 - Assets/test/Crystal Golem/sfx_crystalgolem_swing.prefab
 - Assets/1Proj/wep/RingKnightGreatSwords/RingedKnightPairedGreatswords.prefab
 - Assets/1Proj/wep/Silver Knight Spear/SilverKnightSpear2.prefab
@@ -539,16 +588,18 @@ Assets:
 - Assets/1Proj/wep/Abyss Greatsword/AbyssGreatswordAttack1.anim
 - Assets/1Proj/wep/Dark Silver Tracer/GoldSilverTracers.prefab
 - Assets/test/Andre/sfx_Andre_talk1.prefab
+- Assets/52SpecialEffectPack/Effect/Effect(Shuriken)/SoulSpear.prefab
+- Assets/test/Andre/BlacksmithForge.prefab
 - Assets/test/hellkite drake/hellkitedrakeattack3.prefab
 - Assets/1Proj/wep/Curvedsword2.anim
 - Assets/test/Fang Boar/FangBoar_Attack2.prefab
-- Assets/test/Giant Skeleton/Skeleton_Attack_1.prefab
+- Assets/test/Andre/GiantsEmber_Item_tier8.prefab
 - Assets/test/sif/Sif_attack_slash3.prefab
 - Assets/1Proj/wep/Channeler's Trident/ChannelerTrident.prefab
 - Assets/1Proj/export/New Prefab1.prefab
 - Assets/test/LightningSpear_Projectile.prefab
 - Assets/test/cat/sfx_cat_alert.prefab
-- Assets/test/Giant Skeleton/Skeleton_Attack_2.prefab
+- Assets/test/Andre/FlameEmber_Item_tier5.prefab
 - Assets/test/Mushroom/GiantMushroom_Ragdoll.prefab
 - Assets/test/Andre/Bye1.mp3
 - Assets/test/cat/SweetShalquoir.prefab
@@ -561,21 +612,28 @@ Assets:
 - Assets/1Proj/wep/Lightningspear_spell.anim
 - Assets/test/Fang Boar/sfx_fangboar_attack.prefab
 - Assets/1Proj/Titanite/titanite_giant_sword_Tier2.prefab
-- Assets/1Proj/wep/RingKnightGreatSwords/GS_Back_Slow.anim
+- Assets/1Proj/FireLinkShrine/RuneStone_Andre1.prefab
 - Assets/test/Blue wyvern xps/attack_breath.prefab
+- Assets/test/Andre/FlameEmber_tier5.prefab
+- Assets/1Proj/wep/RingKnightGreatSwords/GS_Back_Slow.anim
 - Assets/1Proj/wep/Ultragreatsword_Attack2.anim
+- Assets/1Proj/wep/Seals/SunlightSeal1.prefab
 - Assets/1Proj/wep/GraveLord_AOE.prefab
+- Assets/test/Andre/DarkEmber_tier4.prefab
 - Assets/Red_Deer/Cats/Cat_Stray/CatStray/FBX/Anim/Arm_Cat_Attack_F.anim
 - Assets/test/Fang Boar/FangBoar_Attack.prefab
 - Assets/1Proj/wep/buff_frost.prefab
+- Assets/test/Andre/ChaosEmber_tier6.prefab
 - Assets/1Proj/wep/Tin Crystallization Catalyst/TinCrystalStaff.prefab
 - Assets/Red_Deer/Cats/Cat_Stray/CatStray/FBX/Anim/Arm_Cat_Lie_belly_sleep.anim
+- Assets/test/Andre/DivineEmber_tier3.prefab
 - Assets/1Proj/Titanite/TitaniteScale.prefab
 - Assets/test/Asylum Demon/DemonGreatHammer1.prefab
 - Assets/test/Taurus Demon/FX_Taurus_Dead.prefab
 - Assets/Red_Deer/Cats/Cat_Stray/CatStray/FBX/Anim/Arm_Cat_Lie_belly_end.anim
 - Assets/1Proj/wep/Smough's Hammer/SmoughHammer.prefab
 - Assets/test/Taurus Demon/SFX_Taurus_Idle1.prefab
+- Assets/test/Andre/ChaosEmber_Item_tier6.prefab
 - Assets/test/carvings/sfx_thankyou.prefab
 - Assets/test/Andre/Bye2.mp3
 - Assets/test/carvings/projectile_verygood.prefab
@@ -594,6 +652,7 @@ Assets:
 - Assets/1Proj/wep/Gold Tracer/DualswordsAlt.anim
 - Assets/1Proj/Companions/EikthyrCompanion.prefab
 - Assets/test/Andre/talk4.mp3
+- Assets/test/Andre/LargeEmber_Item_tier2.prefab
 - Assets/test/Lantern/Lantern1.prefab
 - Assets/test/hellkite drake/hellkitedrakeattack.prefab
 - Assets/PrefabInstance/projectile_marikameteor.prefab
@@ -601,29 +660,27 @@ Assets:
 - Assets/test/Mushroom/GiantMushroomBro.prefab
 - Assets/1Proj/wep/Channeler's Trident/TridentBuff.asset
 - Assets/test/hellkite drake/vfx_Ball_launch.prefab
-- Assets/test/Giant Skeleton/Skeleton_Attack_7.prefab
 - Assets/1Proj/wep/MLGS/MLGS_Projectile.prefab
 - Assets/test/DS - silver knight/BlackKnightUGS2.prefab
 - Assets/1Proj/Titanite/BlueTitanite.prefab
 - Assets/test/Andre/Greeting2.mp3
 - Assets/1Proj/wep/RingKnightGreatSwords/GS_Strafe_Right_Fast.anim
 - Assets/test/Crystal Golem/sfx_crystalgolem_bomb.prefab
-- Assets/test/Andre/BlacksmithAltar.prefab
 - Assets/1Proj/wep/Priscilla's Dagger/DaggerPrisc.prefab
 - Assets/test/Taurus Demon/TaurusWep2.prefab
 - Assets/1Proj/wep/Manus Catalyst/ManusCatalyst.prefab
 - Assets/test/Taurus Demon/TaurusWep1.prefab
+- Assets/Red_Deer/Cats/Cat_Stray/CatStray/FBX/Anim/Arm_Cat_Attack_R.anim
 - Assets/1Proj/wep/Curvedsword3.anim
 - Assets/test/Dark Souls - Giant Dad/Giantdad.prefab
 - Assets/test/Ornstein the Dragonslayer/DragonSlayerOrnstein.prefab
 - Assets/PrefabInstance/Soularrow.prefab
 - Assets/test/cat/Cat_jumpattack.prefab
-- Assets/Red_Deer/Cats/Cat_Stray/CatStray/FBX/Anim/Arm_Cat_Attack_R.anim
-- Assets/1Proj/wep/buff_fire.prefab
 - Assets/test/Crystal Golem/Golem_AOE.prefab
 - Assets/test/carvings/projectile_helpme.prefab
 - Assets/test/Dark Souls - Giant Dad/GrassCrestShield1.prefab
 - Assets/test/DS - silver knight/BlackKnightUGS1.prefab
+- Assets/1Proj/Locations/Sif_Loc.prefab
 - Assets/GameObject/MarikaMeteors.prefab
 - Assets/test/sif/shalquoir_tombstone.prefab
 - Assets/test/BlackKnight ds3/BlackKnight.prefab
@@ -635,11 +692,11 @@ Assets:
 - Assets/1Proj/wep/RingKnightGreatSwords/GS_Strafe_Left.anim
 - Assets/1Proj/wep/Dragonslayer Greatbow/crosshair_bow.prefab
 - Assets/1Proj/wep/Curvedsword_alt.anim
+- Assets/test/Andre/BlacksmithAltar.prefab
 - Assets/1Proj/Titanite/titanite_giant_sword_Tier1.prefab
-- Assets/1Proj/wep/buff_spirit.prefab
 - Assets/test/sif/Sif_attack2_vert.prefab
+- Assets/1Proj/wep/buff_spirit.prefab
 - Assets/test/cat/SweetShalquoir_Piece.prefab
-- Assets/1Proj/wep/buff_poison.prefab
 - Assets/1Proj/wep/havel set/HavelHelm.prefab
 - Assets/test/hellkite drake/hellkitedrakeattack1.prefab
 - Assets/test/sif/sfx_sif_5.prefab
@@ -647,15 +704,14 @@ Assets:
 - Assets/1Proj/wep/Quelaag's Furysword/FurySword.prefab
 - Assets/test/Fang Boar/FangBoar_Attack3.prefab
 - Assets/test/Asylum Demon/DemonGreatHammerSlam.prefab
-- Assets/1Proj/wep/Abyss Greatsword/AbyssGreatsword.prefab
+- Assets/test/Andre/LargeEmber_tier2.prefab
 - Assets/test/Blue wyvern xps/attack_breath_arc.prefab
 - Assets/test/Blue wyvern xps/attack_breath_flying.prefab
+- Assets/1Proj/wep/Abyss Greatsword/AbyssGreatsword.prefab
 - Assets/1Proj/wep/Moonlight Butterfly Horn/MLHorn.prefab
 - Assets/test/Andre/greeting1.mp3
-- Assets/1Proj/wep/Onion/CatarinaLegs.prefab
 - Assets/Red_Deer/Cats/Cat_Stray/CatStray/FBX/Anim/Arm_Cat_Co_attack_F.anim
 - Assets/test/sif/sfx_sif_attack.prefab
-- Assets/test/Giant Skeleton/Skeleton_Attack_5.prefab
 - Assets/creatures/golemwep.prefab
 - Assets/test/Blue wyvern xps/new/Wyvern.prefab
 - Assets/1Proj/wep/Greatsword_Attack2.anim
@@ -666,7 +722,7 @@ Assets:
 - Assets/1Proj/wep/RingKnightGreatSwords/GS_Walk_Forward.anim
 - Assets/test/BlackKnight ds3/BlackKnight_Ragdoll.prefab
 - Assets/1Proj/wep/Mask of the Father/MaskOfFather.prefab
-- Assets/test/Giant Skeleton/GiantSkeleton_Sword.prefab
+- Assets/GameObject/BoarCave.prefab
 - Assets/test/sif/Sif.prefab
 - Assets/Red_Deer/Cats/Cat_Stray/CatStray/FBX/Anim/cat_sleep_start1.anim
 - Assets/1Proj/wep/Gold Tracer/Dualswords3.anim
@@ -674,12 +730,17 @@ Assets:
 - Assets/1Proj/wep/RingKnightGreatSwords/GS_Jog_Forward.anim
 - Assets/1Proj/wep/Dragon Greatsword/DragonGreatSword.prefab
 - Assets/test/MushroomUnarmed.prefab
-- Assets/test/Fang Boar/sfx_fangboar_hit.prefab
-- Assets/1Proj/wep/RingKnightGreatSwords/GS_Strafe_Left_Fast.anim
 - Assets/1Proj/wep/Abyss Greatsword/1HGreatsword_2.anim
+- Assets/test/Fang Boar/sfx_fangboar_hit.prefab
+- Assets/GameObject/RuneTablet_Andre.prefab
+- Assets/1Proj/wep/RingKnightGreatSwords/GS_Strafe_Left_Fast.anim
+- Assets/GameObject/fx_lightningbolts.prefab
 - Assets/test/DS - silver knight/BlackKnightHalberd3.prefab
+- Assets/test/DS - silver knight/TempTrader.prefab
+- Assets/1Proj/wep/projectile_beam_magic.prefab
 - Assets/test/cat/Cat_AttackP1.prefab
 - Assets/test/carvings/VerygoodCarving.prefab
+- Assets/1Proj/wep/Tin Darkmoon Catalyst/TinDarkmoonCatalyst.prefab
 - Assets/1Proj/wep/Artorias Set/ArtLegs.prefab
 - Assets/1Proj/Titanite/Titanite_Sword_Loc_2.prefab
 - Assets/1Proj/Darkroot Garden & Darkroot Basin/ForestTower.prefab
@@ -688,7 +749,6 @@ Assets:
 - Assets/1Proj/wep/Gold Tracer/Dualswords2.anim
 - Assets/1Proj/wep/SunArmor/SunChest.prefab
 - Assets/1Proj/wep/RingKnightGreatSwords/RKPG_Attack_1.anim
-- Assets/1Proj/wep/Onion/CatarinaHelm.prefab
 - Assets/1Proj/Titanite/TitaniteShard.prefab
 - Assets/1Proj/Titanite/TwinklingTitanite.prefab
 - Assets/test/hellkite drake/hellkite_breath_fly.prefab

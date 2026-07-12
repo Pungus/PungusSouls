@@ -1,31 +1,20 @@
-﻿using CreatureManager;
 using HarmonyLib;
-    using System.Collections;
-    using System.Collections.Generic;
-    using UnityEngine;
+using System.Collections.Generic;
+using UnityEngine;
 
-    namespace PungusSouls
-    {
+namespace PungusSouls
+{
     public class BonfireController : MonoBehaviour, Hoverable, Interactable
     {
-        private const string ActivatedKey = "bonfire_activated";
-        private const string BonfireListKey = "ps_bonfires";
-        public class BonfireData
-        {
-            public Vector3 Position;
-            public string Name;
-        }
-
         private ZNetView m_nview;
         private GameObject enabledRoot;
+
         private void Awake()
         {
-
-
-
             m_nview = GetComponentInParent<ZNetView>();
-            Debug.Log($"[Bonfire] Awake {gameObject.name} {transform.position}");
-            Debug.Log($"ZDO={(m_nview != null ? m_nview.GetZDO() != null : false)}");
+
+            Debug.Log($"[Bonfire] Awake {gameObject.name} {GetBonfirePosition()}");
+            Debug.Log($"[Bonfire] ZDO={(m_nview != null && m_nview.GetZDO() != null)}");
 
             foreach (Transform t in GetComponentsInChildren<Transform>(true))
             {
@@ -33,52 +22,44 @@ using HarmonyLib;
                 {
                     enabledRoot = t.gameObject;
                 }
-
-                if (BonfireManager.IsActivated(transform.position))
-                {
-                    BonfireManager.EnsureMapPin(transform.position);
-                    RefreshState();
-                }
-
             }
+
+            if (BonfireManager.IsActivated(GetBonfirePosition()))
+            {
+                BonfireManager.EnsureMapPin(GetBonfirePosition());
+            }
+
             RefreshState();
         }
+
         private void Start()
         {
-
-            GameObject ps_bonfire = PrefabManager.RegisterPrefab(Animations.asset, "PS_Bonfire");
-            Debug.Log(
-    $"[Bonfire] ZNetView Valid = " +
-    $"{m_nview != null && m_nview.IsValid()}");
-            Debug.Log(
-                $"[Bonfire] Registered prefab = {ps_bonfire != null}");
-
+            Debug.Log($"[Bonfire] ZNetView Valid = {m_nview != null && m_nview.IsValid()}");
         }
 
         private void OnDestroy()
         {
-
-            Debug.Log(
-                $"[Bonfire] DESTROYING {gameObject.name} {transform.position}");
-
-            Debug.Log(
-                $"[Bonfire] Scene = {gameObject.scene.name}");
-
-            Debug.Log(
-                $"[Bonfire] ActiveInHierarchy = {gameObject.activeInHierarchy}");
-
-
-            Debug.Log(
-                $"[Bonfire] DESTROYING {gameObject.name} " +
-                $"ZDO={(m_nview != null ? m_nview.GetZDO() != null : false)}");
+            Debug.Log($"[Bonfire] DESTROYING {gameObject.name} {GetBonfirePosition()}");
+            Debug.Log($"[Bonfire] Scene = {gameObject.scene.name}");
+            Debug.Log($"[Bonfire] ActiveInHierarchy = {gameObject.activeInHierarchy}");
         }
 
+        private Vector3 GetBonfirePosition()
+        {
+            Transform marker = transform.Find("BonfirePinPoint");
+
+            if (marker != null)
+            {
+                return marker.position;
+            }
+
+            return transform.position;
+        }
 
         private bool IsActivated()
         {
-            return BonfireManager.IsActivated(transform.position);
+            return BonfireManager.IsActivated(GetBonfirePosition());
         }
-
 
         private void RefreshState()
         {
@@ -89,49 +70,28 @@ using HarmonyLib;
 
             enabledRoot.SetActive(IsActivated());
         }
-        public static class BonfireInjector
-        {
-            private static void Postfix()
-            {
-                foreach (Transform t in Object.FindObjectsByType<Transform>(
-                                FindObjectsInactive.Include,
-                                FindObjectsSortMode.None))
-                {
-                    if (t.name != "PS_Bonfire")
-                        continue;
 
-                    //Debug.Log($"Found bonfire: {t.name}");
-
-                    if (t.GetComponent<BonfireController>() == null)
-                    {
-                        //Debug.Log("Injecting BonfireController");
-
-                        t.gameObject.AddComponent<BonfireController>();
-                    }
-                }
-            }
-        }
         private void Activate()
         {
+            Vector3 position = GetBonfirePosition();
+
             if (enabledRoot != null)
             {
                 enabledRoot.SetActive(true);
-                BonfireManager.RegisterBonfire(transform.position);
+
                 foreach (ParticleSystem ps in enabledRoot.GetComponentsInChildren<ParticleSystem>(true))
                 {
                     ps.Play(true);
                 }
             }
 
-            BonfireManager.RegisterBonfire(transform.position);
-
+            BonfireManager.RegisterBonfire(position);
             RefreshState();
 
             MessageHud.instance.ShowMessage(
                 MessageHud.MessageType.Center,
                 "Bonfire lit");
         }
-
 
         private void Rest(Player player)
         {
@@ -142,6 +102,19 @@ using HarmonyLib;
                 "You rest at the bonfire.");
         }
 
+        private void StartTravel()
+        {
+            BonfireManager.CurrentBonfirePosition = GetBonfirePosition();
+            BonfireManager.TravelMode = true;
+            BonfireManager.RefreshMapPins();
+
+            Minimap.instance.SetMapMode(
+                Minimap.MapMode.Large);
+
+            MessageHud.instance.ShowMessage(
+                MessageHud.MessageType.Center,
+                "Select a destination bonfire.");
+        }
 
         public bool Interact(Humanoid user, bool hold, bool alt)
         {
@@ -160,10 +133,6 @@ using HarmonyLib;
             if (!IsActivated())
             {
                 Activate();
-
-            BonfireManager.RegisterBonfire(
-                    transform.position);
-
                 return true;
             }
 
@@ -174,10 +143,8 @@ using HarmonyLib;
             }
 
             Rest(player);
-
             return true;
         }
-
 
         public bool UseItem(Humanoid user, ItemDrop.ItemData item)
         {
@@ -188,12 +155,12 @@ using HarmonyLib;
         {
             return "Ancient Bonfire";
         }
+
         public string GetHoverText()
         {
             if (!IsActivated())
             {
-                return
-                    "<color=yellow><b>E</b></color> Light Bonfire";
+                return "<color=yellow><b>E</b></color> Light Bonfire";
             }
 
             return
@@ -201,22 +168,6 @@ using HarmonyLib;
                 "<color=yellow><b>E</b></color> Rest\n" +
                 "<color=yellow><b>Shift+E</b></color> Travel";
         }
-
-        private void StartTravel()
-        {
-
-            BonfireManager.CurrentBonfirePosition = transform.position;
-            BonfireManager.TravelMode = true;
-
-            Minimap.instance.SetMapMode(
-                Minimap.MapMode.Large);
-
-            MessageHud.instance.ShowMessage(
-                MessageHud.MessageType.Center,
-                "Select a destination bonfire.");
-
-        }
-
 
         [HarmonyPatch(typeof(Minimap), "OnMapLeftClick")]
         public static class Minimap_OnMapLeftClick_Patch
@@ -228,42 +179,40 @@ using HarmonyLib;
                     return;
                 }
 
-                var pins =
-                    Traverse.Create(__instance)
-                        .Field("m_pins")
-                        .GetValue<List<Minimap.PinData>>();
+                List<Minimap.PinData> pins = Traverse.Create(__instance)
+                    .Field("m_pins")
+                    .GetValue<List<Minimap.PinData>>();
 
                 if (pins == null)
                 {
                     return;
                 }
 
-                Vector3 worldPos =
-                    (Vector3)Traverse.Create(__instance)
-                        .Method(
-                            "ScreenToWorldPoint",
-                            ZInput.mousePosition)
-                        .GetValue();
+                Vector3 worldPos = (Vector3)Traverse.Create(__instance)
+                    .Method("ScreenToWorldPoint", ZInput.mousePosition)
+                    .GetValue();
+
+                float removeRadius = Traverse.Create(__instance)
+                    .Field("m_removeRadius")
+                    .GetValue<float>();
+
+                float largeZoom = Traverse.Create(__instance)
+                    .Field("m_largeZoom")
+                    .GetValue<float>();
+
+                float maxClickDistance = removeRadius * (largeZoom * 2f);
 
                 Minimap.PinData closest = null;
                 float best = float.MaxValue;
 
                 foreach (Minimap.PinData pin in pins)
                 {
-                    if (!pin.m_save)
-                    {
-                        continue;
-                    }
-
                     if (!BonfireManager.IsBonfirePin(pin))
                     {
                         continue;
                     }
 
-                    float distance =
-                        Utils.DistanceXZ(
-                            worldPos,
-                            pin.m_pos);
+                    float distance = Utils.DistanceXZ(worldPos, pin.m_pos);
 
                     if (distance < best)
                     {
@@ -272,8 +221,22 @@ using HarmonyLib;
                     }
                 }
 
-                if (closest == null)
+                if (closest == null || best > maxClickDistance)
                 {
+                    MessageHud.instance.ShowMessage(
+                        MessageHud.MessageType.Center,
+                        "Select a bonfire pin.");
+
+                    return;
+                }
+
+                if (BonfireManager.CurrentBonfirePosition.HasValue &&
+                    Utils.DistanceXZ(closest.m_pos, BonfireManager.CurrentBonfirePosition.Value) < 2f)
+                {
+                    MessageHud.instance.ShowMessage(
+                        MessageHud.MessageType.Center,
+                        "Already at this bonfire.");
+
                     return;
                 }
 
@@ -290,6 +253,7 @@ using HarmonyLib;
                     true);
 
                 BonfireManager.TravelMode = false;
+                BonfireManager.CurrentBonfirePosition = null;
 
                 Minimap.instance.SetMapMode(
                     Minimap.MapMode.Small);
@@ -300,6 +264,4 @@ using HarmonyLib;
             }
         }
     }
-
-    }
-
+}

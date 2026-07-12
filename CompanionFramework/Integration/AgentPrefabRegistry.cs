@@ -40,6 +40,8 @@ public static class AgentPrefabRegistry
         Register(new AgentPrefabDefinition("sweet_shalquoir", new[] { "SweetShalquoir", "$ps_sweetshalquoir" }, 300f, 8, 6));
         Register(new AgentPrefabDefinition("queen_marika", new[] { "queenmarikacompanion", "$ps_queenmarika" }, 300f, 8, 6));
         Register(new AgentPrefabDefinition("HellkiteDrake", new[] { "HellkiteDrake", "$ps_hkdrake" }, 300f, 8, 6));
+        Register(new AgentPrefabDefinition("FangBoarCompanion", new[] { "FangBoarCompanion", "$ps_fangboarcompaion" }, 300f, 8, 6));
+        Register(new AgentPrefabDefinition("BabyMushroom", new[] { "BabyMushroom", "$ps_BabyMushroom" }, 300f, 8, 6));
     }
 
     public static IReadOnlyList<AgentPrefabDefinition> All

@@ -6,6 +6,8 @@ namespace PungusSouls.PungusTools
     public class AnimationEventHandler : MonoBehaviour
     {
         private static GameObject BuffLightningPrefab;
+        private static GameObject BuffFirePrefab;
+        private static GameObject BuffFrostPrefab;
         private static GameObject ActiveBuffVFX;
 
         public void ApplyWeaponBuff()
@@ -65,6 +67,34 @@ namespace PungusSouls.PungusTools
             {
                 ActiveBuffVFX = spawned[0];
             }
+
+            if (!weaponVisual || !BuffFirePrefab)
+            {
+                return;
+            }
+
+            var spawned2 = new EffectList
+            {
+                m_effectPrefabs = new[]
+                {
+            new EffectList.EffectData
+            {
+                m_prefab = BuffFirePrefab,
+                m_enabled = true,
+                m_attach = true,
+                m_follow = true,
+                m_inheritParentRotation = true
+            }
+        }
+            }.Create(
+                weaponVisual.transform.position,
+                weaponVisual.transform.rotation,
+                weaponVisual.transform);
+
+            if (spawned2.Length > 0)
+            {
+                ActiveBuffVFX = spawned2[0];
+            }
         }
 
         private void ApplyStatus(Player player)
@@ -86,7 +116,18 @@ namespace PungusSouls.PungusTools
 
             player.m_seman.AddStatusEffect(se, true);
 
-            //Debug.Log("SE_Lightningbuff applied");
+            var se2 = ObjectDB.instance.GetStatusEffect(
+                "SE_Firebuff".GetStableHashCode());
+
+            if (se2 == null)
+            {
+                //Debug.Log("SE_Firebuff NOT FOUND");
+                return;
+            }
+
+            player.m_seman.AddStatusEffect(se2, true);
+
+            //Debug.Log("SE_Firebuff applied");
         }
 
         [HarmonyPatch(typeof(ZNetScene), nameof(ZNetScene.Awake))]
@@ -97,7 +138,7 @@ namespace PungusSouls.PungusTools
                 //Debug.Log("AnimationEventHandler patch running");
 
                 BuffLightningPrefab = __instance.GetPrefab("buff_lightning");
-
+                BuffFirePrefab = __instance.GetPrefab("buff_fire");
                 var playerPrefab = __instance.GetPrefab("Player");
 
                 if (!playerPrefab)
@@ -130,6 +171,14 @@ namespace PungusSouls.PungusTools
             {
                 if (!__instance.HaveStatusEffect(
                         "SE_Lightningbuff".GetStableHashCode()))
+                {
+                    return;
+                }
+
+                hitData.m_damage.m_lightning += 40f;
+
+                if (!__instance.HaveStatusEffect(
+                        "SE_Firebuff".GetStableHashCode()))
                 {
                     return;
                 }

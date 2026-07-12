@@ -1,9 +1,6 @@
-﻿using BepInEx;
 using HarmonyLib;
-using System;
+using System.Collections;
 using System.Collections.Generic;
-using System.Globalization;
-using System.IO;
 using UnityEngine;
 
 namespace PungusSouls
@@ -11,157 +8,97 @@ namespace PungusSouls
     public static class BonfireManager
     {
         private const string PinName = "Bonfire";
+        private const string GlobalKeyPrefix = "ps_bonfire_";
         private const float DuplicateDistance = 2f;
+        private const float PositionScale = 10f;
 
         private static readonly List<Vector3> BonfirePositions = new();
         private static readonly List<Minimap.PinData> BonfirePins = new();
 
-        private static string loadedWorldName;
+        private static bool loaded;
         private static Sprite bonfirePinSprite;
-        public static Vector3? CurrentBonfirePosition;
+
         public static bool TravelMode;
+        public static Vector3? CurrentBonfirePosition;
 
         public static void Load()
         {
-            string worldName = GetWorldName();
-
-            if (string.IsNullOrEmpty(worldName))
+            if (loaded)
             {
-                return;
-            }
-
-            if (loadedWorldName == worldName)
-            {
-                EnsureMapPins();
                 return;
             }
 
             BonfirePositions.Clear();
             BonfirePins.Clear();
 
-            string path = GetSavePath(worldName);
-
-            if (File.Exists(path))
-            {
-                try
-                {
-                    foreach (string line in File.ReadAllLines(path))
-                    {
-                        if (string.IsNullOrWhiteSpace(line))
-                        {
-                            continue;
-                        }
-
-                        string[] parts = line.Split(',');
-
-                        if (parts.Length != 3)
-                        {
-                            continue;
-                        }
-
-                        if (!float.TryParse(parts[0], NumberStyles.Float, CultureInfo.InvariantCulture, out float x))
-                        {
-                            continue;
-                        }
-
-                        if (!float.TryParse(parts[1], NumberStyles.Float, CultureInfo.InvariantCulture, out float y))
-                        {
-                            continue;
-                        }
-
-                        if (!float.TryParse(parts[2], NumberStyles.Float, CultureInfo.InvariantCulture, out float z))
-                        {
-                            continue;
-                        }
-
-                        Vector3 position = new Vector3(x, y, z);
-
-                        if (!HasBonfireNear(position, DuplicateDistance))
-                        {
-                            BonfirePositions.Add(position);
-                        }
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Debug.LogError("[Bonfire] Failed to load bonfire save data");
-                    Debug.LogError(ex);
-                }
-            }
-
-            loadedWorldName = worldName;
-
-            Debug.Log($"[Bonfire] Loaded {BonfirePositions.Count} saved bonfires for world {worldName}");
-
-            EnsureMapPins();
-        }
-
-        public static void Save()
-        {
-            string worldName = GetWorldName();
-
-            if (string.IsNullOrEmpty(worldName))
+            if (ZoneSystem.instance == null)
             {
                 return;
             }
 
-            try
+            IEnumerable keys = GetGlobalKeys();
+
+            if (keys != null)
             {
-                string folder = GetSaveFolder();
-
-                if (!Directory.Exists(folder))
+                foreach (object keyObject in keys)
                 {
-                    Directory.CreateDirectory(folder);
+                    if (keyObject is not string key)
+                    {
+                        continue;
+                    }
+
+                    if (!TryDecodeBonfireKey(key, out Vector3 position))
+                    {
+                        continue;
+                    }
+
+                    if (!HasBonfireNear(position, DuplicateDistance))
+                    {
+                        BonfirePositions.Add(position);
+                    }
                 }
-
-                List<string> lines = new List<string>();
-
-                foreach (Vector3 position in BonfirePositions)
-                {
-                    lines.Add(
-                        position.x.ToString(CultureInfo.InvariantCulture) + "," +
-                        position.y.ToString(CultureInfo.InvariantCulture) + "," +
-                        position.z.ToString(CultureInfo.InvariantCulture));
-                }
-
-                File.WriteAllLines(GetSavePath(worldName), lines);
             }
-            catch (Exception ex)
-            {
-                Debug.LogError("[Bonfire] Failed to save bonfire data");
-                Debug.LogError(ex);
-            }
+
+            loaded = true;
+            Debug.Log($"[Bonfire] Loaded {BonfirePositions.Count} bonfires from world global keys");
         }
 
         public static void RegisterBonfire(Vector3 position)
         {
             Load();
 
-            if (!HasBonfireNear(position, DuplicateDistance))
+            Vector3 storedPosition = QuantizePosition(position);
+
+            if (!HasBonfireNear(storedPosition, DuplicateDistance))
             {
-                BonfirePositions.Add(position);
-                Save();
+                BonfirePositions.Add(storedPosition);
             }
 
-            EnsureMapPin(position);
+            if (ZoneSystem.instance != null)
+            {
+                ZoneSystem.instance.SetGlobalKey(EncodeBonfireKey(storedPosition));
+            }
 
-            Debug.Log($"[Bonfire] Registered bonfire position {position}");
-            Debug.Log($"[Bonfire] Bonfire position count = {BonfirePositions.Count}");
+            EnsureMapPin(storedPosition);
+
+            Debug.Log($"[Bonfire] Registered bonfire position {storedPosition}");
+            Debug.Log($"[Bonfire] Bonfire count = {BonfirePositions.Count}");
         }
 
         public static bool IsActivated(Vector3 position)
         {
             Load();
-
             return HasBonfireNear(position, DuplicateDistance);
         }
 
-        public static void EnsureMapPins()
+        public static void RefreshMapPins()
         {
             if (Minimap.instance == null)
             {
                 return;
             }
+
+            Load();
 
             foreach (Vector3 position in BonfirePositions)
             {
@@ -176,13 +113,15 @@ namespace PungusSouls
                 return;
             }
 
-            if (HasExistingBonfireMapPin(position))
+            Vector3 storedPosition = QuantizePosition(position);
+
+            if (HasExistingBonfireMapPin(storedPosition))
             {
                 return;
             }
 
             Minimap.PinData pin = Minimap.instance.AddPin(
-                position,
+                storedPosition,
                 Minimap.PinType.Icon3,
                 PinName,
                 false,
@@ -203,6 +142,8 @@ namespace PungusSouls
             {
                 return false;
             }
+
+            Load();
 
             foreach (Vector3 position in BonfirePositions)
             {
@@ -237,6 +178,15 @@ namespace PungusSouls
             }
         }
 
+        private static IEnumerable GetGlobalKeys()
+        {
+            object keys = Traverse.Create(ZoneSystem.instance)
+                .Field("m_globalKeys")
+                .GetValue();
+
+            return keys as IEnumerable;
+        }
+
         private static bool HasBonfireNear(Vector3 position, float radius)
         {
             foreach (Vector3 existing in BonfirePositions)
@@ -257,10 +207,9 @@ namespace PungusSouls
                 return false;
             }
 
-            List<Minimap.PinData> pins =
-                Traverse.Create(Minimap.instance)
-                    .Field("m_pins")
-                    .GetValue<List<Minimap.PinData>>();
+            List<Minimap.PinData> pins = Traverse.Create(Minimap.instance)
+                .Field("m_pins")
+                .GetValue<List<Minimap.PinData>>();
 
             if (pins == null)
             {
@@ -294,6 +243,67 @@ namespace PungusSouls
             return false;
         }
 
+        private static Vector3 QuantizePosition(Vector3 position)
+        {
+            return new Vector3(
+                Mathf.Round(position.x * PositionScale) / PositionScale,
+                Mathf.Round(position.y * PositionScale) / PositionScale,
+                Mathf.Round(position.z * PositionScale) / PositionScale);
+        }
+
+        private static string EncodeBonfireKey(Vector3 position)
+        {
+            int x = Mathf.RoundToInt(position.x * PositionScale);
+            int y = Mathf.RoundToInt(position.y * PositionScale);
+            int z = Mathf.RoundToInt(position.z * PositionScale);
+
+            return GlobalKeyPrefix + x + "_" + y + "_" + z;
+        }
+
+        private static bool TryDecodeBonfireKey(string key, out Vector3 position)
+        {
+            position = Vector3.zero;
+
+            if (string.IsNullOrEmpty(key))
+            {
+                return false;
+            }
+
+            if (!key.StartsWith(GlobalKeyPrefix))
+            {
+                return false;
+            }
+
+            string payload = key.Substring(GlobalKeyPrefix.Length);
+            string[] parts = payload.Split('_');
+
+            if (parts.Length != 3)
+            {
+                return false;
+            }
+
+            if (!int.TryParse(parts[0], out int x))
+            {
+                return false;
+            }
+
+            if (!int.TryParse(parts[1], out int y))
+            {
+                return false;
+            }
+
+            if (!int.TryParse(parts[2], out int z))
+            {
+                return false;
+            }
+
+            position = new Vector3(
+                x / PositionScale,
+                y / PositionScale,
+                z / PositionScale);
+
+            return true;
+        }
         private static Sprite GetBonfirePinSprite()
         {
             if (bonfirePinSprite != null)
@@ -301,57 +311,42 @@ namespace PungusSouls
                 return bonfirePinSprite;
             }
 
+            System.Reflection.Assembly assembly =
+                System.Reflection.Assembly.GetExecutingAssembly();
+
+            string resourceName = null;
+
+            foreach (string name in assembly.GetManifestResourceNames())
+            {
+                Debug.Log("[PungusSouls] Embedded resource: " + name);
+
+                if (name.EndsWith("bonfireicon.png", System.StringComparison.OrdinalIgnoreCase))
+                {
+                    resourceName = name;
+                }
+            }
+
+            if (string.IsNullOrEmpty(resourceName))
+            {
+                Debug.LogError("[Bonfire] Could not find embedded resource ending with bonfireicon.png");
+                return null;
+            }
+
             bonfirePinSprite =
                 AgentNpcIconRegistry.LoadSpriteFromEmbeddedResource(
-                    System.Reflection.Assembly.GetExecutingAssembly(),
-                    "PungusSouls.assets.icons.bonfireicon.png");
+                    assembly,
+                    resourceName);
 
             if (bonfirePinSprite == null)
             {
-                Debug.LogError("[Bonfire] Failed to load embedded bonfire pin sprite");
+                Debug.LogError("[Bonfire] Failed to load embedded bonfire icon from " + resourceName);
+            }
+            else
+            {
+                Debug.Log("[Bonfire] Loaded embedded bonfire icon from " + resourceName);
             }
 
             return bonfirePinSprite;
-        }
-
-        private static string GetWorldName()
-        {
-            if (ZNet.World == null)
-            {
-                return string.Empty;
-            }
-
-            return MakeSafeFileName(ZNet.World.m_name);
-        }
-
-        private static string GetSaveFolder()
-        {
-            return Path.Combine(
-                Paths.ConfigPath,
-                "PungusSouls",
-                "Bonfires");
-        }
-
-        private static string GetSavePath(string worldName)
-        {
-            return Path.Combine(
-                GetSaveFolder(),
-                worldName + ".txt");
-        }
-
-        private static string MakeSafeFileName(string value)
-        {
-            if (string.IsNullOrWhiteSpace(value))
-            {
-                return "unknown_world";
-            }
-
-            foreach (char invalidChar in Path.GetInvalidFileNameChars())
-            {
-                value = value.Replace(invalidChar, '_');
-            }
-
-            return value.Trim();
         }
     }
 }

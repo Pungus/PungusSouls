@@ -1,87 +1,78 @@
-﻿using HarmonyLib;
-using System.Collections.Generic;
+using HarmonyLib;
+using System;
+using System.Collections;
 using System.Reflection;
 using UnityEngine;
 
 namespace PungusSouls
 {
-    [HarmonyPatch]
-    public static class ExpandClearAreaCheck
+    [HarmonyPatch(typeof(ZoneSystem), "PlaceVegetation")]
+    public static class ClearAreasFromOverlappingLocations
     {
-        private const float ExtraClearAreaRadius = 10f;
-        private const float RefreshInterval = 5f;
+        private const float ZoneHalfSize = 32f;
+        private const float MinimumCustomClearAreaRadius = 23f;
+        private const float ExtraClearAreaRadius = 20f;
         private const bool DebugClearAreaPatch = false;
 
-        private static readonly List<Location> CachedLocations = new List<Location>();
-        private static float _lastRefreshTime;
-        private static bool _targetWarningLogged;
+        private static Type ClearAreaType;
+        private static ConstructorInfo ClearAreaConstructor;
 
-
-        private static MethodBase TargetMethod()
+        [HarmonyPrepare]
+        private static bool Prepare()
         {
-            return AccessTools.Method(
-                typeof(ZoneSystem),
-                "InsideClearArea",
+            ClearAreaType = AccessTools.Inner(typeof(ZoneSystem), "ClearArea");
+
+            if (ClearAreaType == null)
+            {
+                Debug.LogError("[PungusSouls ClearArea] Failed to find ZoneSystem.ClearArea");
+                return false;
+            }
+
+            ClearAreaConstructor = AccessTools.Constructor(
+                ClearAreaType,
                 new[]
                 {
-            typeof(List<>).MakeGenericType(
-                AccessTools.Inner(typeof(ZoneSystem), "ClearArea")),
-            typeof(Vector3)
+                    typeof(Vector3),
+                    typeof(float)
                 });
-        }
 
-
-        private static void RefreshLocations()
-        {
-            CachedLocations.Clear();
-
-            Location[] locations = Resources.FindObjectsOfTypeAll<Location>();
-
-            for (int i = 0; i < locations.Length; i++)
+            if (ClearAreaConstructor == null)
             {
-                Location location = locations[i];
-
-                if (location == null || location.gameObject == null)
-                    continue;
-
-                if (!location.gameObject.scene.IsValid() || !location.gameObject.scene.isLoaded)
-                    continue;
-
-                if (!location.m_clearArea)
-                    continue;
-
-                CachedLocations.Add(location);
+                Debug.LogError("[PungusSouls ClearArea] Failed to find ZoneSystem.ClearArea constructor");
+                return false;
             }
 
-            _lastRefreshTime = Time.time;
+            return true;
         }
 
-        private static void Postfix(
-            ref bool __result,
-            Vector3 __1)
+        [HarmonyPrefix]
+        private static void Prefix(
+            ZoneSystem __instance,
+            Vector2i zoneID,
+            Vector3 zoneCenterPos,
+            object clearAreas)
         {
-            if (__result)
+            if (__instance == null || clearAreas == null)
                 return;
 
-            Vector3 point = __1;
+            IList clearAreaList = clearAreas as IList;
 
-            if (Time.time - _lastRefreshTime > RefreshInterval ||
-                CachedLocations.Count == 0)
+            if (clearAreaList == null)
+                return;
+
+            int added = 0;
+
+            float zoneMinX = zoneCenterPos.x - ZoneHalfSize;
+            float zoneMaxX = zoneCenterPos.x + ZoneHalfSize;
+            float zoneMinZ = zoneCenterPos.z - ZoneHalfSize;
+            float zoneMaxZ = zoneCenterPos.z + ZoneHalfSize;
+
+            foreach (ZoneSystem.LocationInstance instance in __instance.m_locationInstances.Values)
             {
-                RefreshLocations();
-            }
+                ZoneSystem.ZoneLocation location = instance.m_location;
 
-            point.y = 0f;
-
-            for (int i = CachedLocations.Count - 1; i >= 0; i--)
-            {
-                Location location = CachedLocations[i];
-
-                if (location == null || location.gameObject == null)
-                {
-                    CachedLocations.RemoveAt(i);
+                if (location == null)
                     continue;
-                }
 
                 if (!location.m_clearArea)
                     continue;
@@ -91,20 +82,91 @@ namespace PungusSouls
                         location.m_exteriorRadius,
                         location.m_interiorRadius);
 
-                if (baseRadius <= 0f)
+                if (baseRadius <= MinimumCustomClearAreaRadius)
                     continue;
 
-                float radius = baseRadius + ExtraClearAreaRadius;
+                float expandedRadius =
+                    baseRadius +
+                    Mathf.Max(
+                        ExtraClearAreaRadius,
+                        baseRadius * 0.15f);
 
-                Vector3 center = location.transform.position;
-                center.y = 0f;
+                Vector3 center = instance.m_position;
 
-                if ((point - center).sqrMagnitude <= radius * radius)
+                if (!OverlapsZone(
+                        center,
+                        expandedRadius,
+                        zoneMinX,
+                        zoneMaxX,
+                        zoneMinZ,
+                        zoneMaxZ))
                 {
-                    __result = true;
-                    return;
+                    continue;
+                }
+
+                object clearArea =
+                    ClearAreaConstructor.Invoke(
+                        new object[]
+                        {
+                            center,
+                            expandedRadius
+                        });
+
+                clearAreaList.Add(clearArea);
+                added++;
+
+                if (DebugClearAreaPatch)
+                {
+                    Debug.Log(
+                        "[PungusSouls ClearArea] Added overlapping clear area " +
+                        location.m_name +
+                        " zone=" +
+                        zoneID +
+                        " center=" +
+                        center +
+                        " baseRadius=" +
+                        baseRadius.ToString("F1") +
+                        " expandedRadius=" +
+                        expandedRadius.ToString("F1"));
                 }
             }
+
+            if (DebugClearAreaPatch && added > 0)
+            {
+                Debug.Log(
+                    "[PungusSouls ClearArea] Added " +
+                    added +
+                    " overlapping clear areas for vegetation zone " +
+                    zoneID);
+            }
+        }
+
+        private static bool OverlapsZone(
+            Vector3 center,
+            float radius,
+            float zoneMinX,
+            float zoneMaxX,
+            float zoneMinZ,
+            float zoneMaxZ)
+        {
+            float clearMinX = center.x - radius;
+            float clearMaxX = center.x + radius;
+            float clearMinZ = center.z - radius;
+            float clearMaxZ = center.z + radius;
+
+            if (clearMaxX < zoneMinX)
+                return false;
+
+            if (clearMinX > zoneMaxX)
+                return false;
+
+            if (clearMaxZ < zoneMinZ)
+                return false;
+
+            if (clearMinZ > zoneMaxZ)
+                return false;
+
+            return true;
         }
     }
 }
