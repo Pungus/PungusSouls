@@ -1425,12 +1425,7 @@ namespace PungusSouls
             Item Seath_crystal_spawn = new("souls", "Seath_crystal_spawn", "assets");
             Seath_crystal_spawn.Configurable = Configurability.Disabled;
             Item Seath_Slash = new("souls", "Seath_Slash", "assets");
-            Seath_Slash.Configurable = Configurability.Disabled;
-            PiecePrefabManager.RegisterPrefab(PrefabManager.RegisterAssetBundle("souls"), "SK_Spawner", false);
-            PiecePrefabManager.RegisterPrefab(PrefabManager.RegisterAssetBundle("souls"), "OrnsteinSpawner", false);
-            PiecePrefabManager.RegisterPrefab(PrefabManager.RegisterAssetBundle("souls"), "BK_Spawner", false);
-            PiecePrefabManager.RegisterPrefab(PrefabManager.RegisterAssetBundle("souls"), "BlackKnight_Spawn", false);
-            PiecePrefabManager.RegisterPrefab(PrefabManager.RegisterAssetBundle("souls"), "Spawner_AsylumDemon", false);*/
+            Seath_Slash.Configurable = Configurability.Disabled;*/
             Debug.Log("[PungusSouls] AFTER Creatureattacks");
             #endregion Creature Attacks
 
