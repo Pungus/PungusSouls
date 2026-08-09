@@ -21,10 +21,14 @@ public static class AgentModuleInstallerPatch
         "AgentRested",
         "AgentSkills",
         "AgentSkillActivityTracker",
-        "AgentTerrainStepAssist",
+        "AgentAssignedBedRestController",
+        "AgentAmbientActivityController",
         "AgentBedExitAssist",
         "AgentDoorHandler",
-        "AgentHudRegistryEntry"
+        "AgentHudRegistryEntry",
+        "AgentMountAndCartController",
+        "AgentCookController",
+        "AgentResourceWorkController"
     };
 
     private static void Postfix(AgentComponent __instance)
@@ -59,6 +63,8 @@ public static class AgentModuleInstallerPatch
             return;
 
         agent.gameObject.AddComponent(type);
+        if (typeName == "AgentMountAndCartController")
+            Debug.LogWarning("[AgentModuleInstaller] installed AgentMountAndCartController on " + agent.gameObject.name);
     }
 
     private static void RegisterInventory(AgentComponent agent)
@@ -142,10 +148,12 @@ public class AgentDeferredModuleInstaller : MonoBehaviour
             return;
 
         agent.gameObject.AddComponent(type);
+        if (typeName == "AgentMountAndCartController")
+            Debug.LogWarning("[AgentModuleInstaller] installed AgentMountAndCartController on " + agent.gameObject.name);
     }
 
 
-private static void RegisterInventory(AgentComponent agent)
+    private static void RegisterInventory(AgentComponent agent)
     {
         Type registryType = AccessTools.TypeByName("AgentInventoryRegistry");
 
@@ -185,8 +193,8 @@ public class AgentTerrainStepAssist : MonoBehaviour
     private const float CheckInterval = 0.18f;
     private const float StuckVelocityThreshold = 0.25f;
     private const float StuckMoveThreshold = 0.04f;
-    private const float StuckJumpTime = 2f;
-    private const float JumpCooldown = 5f;
+    private const float StuckJumpTime = 0.85f;
+    private const float JumpCooldown = 1.2f;
     private const float ForwardProbeDistance = 0.75f;
     private const float LowProbeHeight = 0.28f;
     private const float HighProbeHeight = 1.15f;
@@ -283,6 +291,9 @@ public class AgentTerrainStepAssist : MonoBehaviour
             return false;
 
         return reason == "ReturnHome" ||
+               reason == "ReturnHomeInterior" ||
+               reason == "DepositInventory" ||
+               reason == "ResourceWork" ||
                reason == "ReturnToBed" ||
                reason == "ReturnToMissingBed" ||
                reason == "HuntLoot" ||
@@ -291,6 +302,9 @@ public class AgentTerrainStepAssist : MonoBehaviour
 
     private void UpdateStepAssist(float dt)
     {
+        Rigidbody body = GetComponent<Rigidbody>();
+        if (body != null && body.isKinematic)
+            return;
         Vector3 current = transform.position;
         float moved = Vector3.Distance(current, _lastPosition);
         float velocity = _character.GetVelocity().magnitude;
@@ -362,14 +376,13 @@ public class AgentTerrainStepAssist : MonoBehaviour
 
         if (profile != null && !profile.CanJump)
         {
-            Debug.Log("[SifJumpCheck] Step assist jump blocked on " + name);
             return;
         }
-
+        Rigidbody body = GetComponent<Rigidbody>();
+        if (body != null && body.isKinematic)
+            return;
         if (!_character.IsOnGround())
             return;
-
-        Debug.Log("[SifJumpCheck] TryStepJump called on " + name);
 
         _character.SetMoveDir(direction);
 
@@ -379,12 +392,18 @@ public class AgentTerrainStepAssist : MonoBehaviour
         transform.position += direction * ForwardNudge + Vector3.up * StepUpNudge;
         _character.Jump();
 
-        Rigidbody body = GetComponent<Rigidbody>();
-
         if (body != null)
         {
             body.position = transform.position;
-            body.velocity = new Vector3(direction.x * 3.25f, Mathf.Max(body.velocity.y, 2.2f), direction.z * 3.25f);
+
+            if (!body.isKinematic)
+            {
+                body.linearVelocity = new Vector3(
+                    direction.x * 3.25f,
+                    Mathf.Max(body.linearVelocity.y, 2.2f),
+                    direction.z * 3.25f
+                );
+            }
         }
 
         _jumpCooldown = JumpCooldown;
@@ -425,7 +444,7 @@ public class AgentTerrainStepAssist : MonoBehaviour
 [HarmonyPatch(typeof(AgentBehaviourController), "MoveToPoint")]
 public static class AgentTerrainStepAssistMovePatch
 {
-    
+
     private static void Prefix(AgentBehaviourController __instance, Vector3 point, bool run, string reason)
     {
         if (__instance == null)
@@ -627,7 +646,7 @@ public class AgentBedExitAssist : MonoBehaviour
     {
         Bed best = null;
         float bestDistance = BedSearchRadius;
-        Bed[] beds = UnityEngine.Object.FindObjectsOfType<Bed>();
+        Bed[] beds = UnityEngine.Object.FindObjectsByType<Bed>(FindObjectsSortMode.None);
 
         foreach (Bed bed in beds)
         {
@@ -658,9 +677,8 @@ public class AgentBedExitAssist : MonoBehaviour
             _stopMovingMethod.Invoke(_monsterAI, null);
 
         Rigidbody body = GetComponent<Rigidbody>();
-
-        if (body != null)
-            body.velocity = Vector3.zero;
+        if (body != null && !body.isKinematic)
+            body.linearVelocity = Vector3.zero;
     }
 
     private void PlaceAtPosition(Vector3 position, Quaternion rotation)
@@ -669,12 +687,13 @@ public class AgentBedExitAssist : MonoBehaviour
         transform.rotation = rotation;
 
         Rigidbody body = GetComponent<Rigidbody>();
-
         if (body != null)
         {
             body.position = position;
             body.rotation = rotation;
-            body.velocity = Vector3.zero;
+
+            if (!body.isKinematic)
+                body.linearVelocity = Vector3.zero;
         }
 
         if (_zNetView != null && _zNetView.IsValid())
@@ -704,57 +723,6 @@ public class AgentBedExitAssist : MonoBehaviour
 
             if (method != null)
                 return method;
-
-            type = type.BaseType;
-        }
-
-        return null;
-    }
-}
-
-[HarmonyPatch(typeof(AgentBehaviourController), "MoveDirectlyToward")]
-public static class AgentMovementDirectFallbackPatch
-{
-    private static bool Prefix(AgentBehaviourController __instance, Vector3 point, bool run)
-    {
-        if (__instance == null)
-            return false;
-
-        Character character = GetField<Character>(__instance, "_character");
-        Humanoid humanoid = GetField<Humanoid>(__instance, "_humanoid");
-
-        if (character == null)
-            return false;
-
-        Vector3 direction = point - __instance.transform.position;
-        direction.y = 0f;
-
-        if (direction.sqrMagnitude < 0.01f)
-            return false;
-
-        direction.Normalize();
-        character.SetMoveDir(direction);
-
-        if (humanoid != null)
-            humanoid.SetRun(run);
-
-        return false;
-    }
-
-    private static T GetField<T>(object instance, string name) where T : class
-    {
-        FieldInfo field = FindField(instance.GetType(), name);
-        return field != null ? field.GetValue(instance) as T : null;
-    }
-
-    public static FieldInfo FindField(Type type, string name)
-    {
-        while (type != null)
-        {
-            FieldInfo field = type.GetField(name, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-
-            if (field != null)
-                return field;
 
             type = type.BaseType;
         }

@@ -9,7 +9,13 @@ namespace Core.Agent
         Idle,
         Follow,
         StayHome,
-        Hunt
+        Hunt,
+        Cook,
+        Gather,
+        Lumbering,
+        Mining,
+        Quarrying,
+        Repair
     }
 
     public class AgentContext
@@ -32,7 +38,16 @@ namespace Core.Agent
         {
             None,
             Hunt,
-            Patrol
+            Patrol,
+            Cook,
+            Gather,
+            Lumbering,
+            Mining,
+            Quarrying,
+            Repair,
+            Fishing,
+            Smelting,
+            Farming
         }
 
         public AgentInventory Inventory;

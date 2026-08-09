@@ -205,7 +205,7 @@ namespace Integration
         {
             _agents.Clear();
 
-            foreach (AgentComponent agent in Object.FindObjectsOfType<AgentComponent>())
+            foreach (AgentComponent agent in Object.FindObjectsByType<AgentComponent>(FindObjectsSortMode.None))
             {
                 if (agent == null || agent.Context == null)
                     continue;
@@ -322,6 +322,12 @@ namespace Integration
             zdo.Set("agent_bed_pos", bed.transform.position);
             zdo.Set("agent_bed_name", bed.gameObject.name);
 
+            if (agent.Context != null)
+            {
+                agent.Context.StateMode = AgentContext.AgentStateMode.StayHome;
+                agent.Context.SyncLegacyFields();
+                agent.SaveBehaviourStateToZDO();
+            }
             //Debug.Log("[Agent] Bed assigned to " + agent.name + ": " + bed.name + " pos=" + bed.transform.position);
         }
 

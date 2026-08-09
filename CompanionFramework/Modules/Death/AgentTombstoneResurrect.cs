@@ -172,7 +172,7 @@ namespace Modules.Death
             if (spawnedView == null || !spawnedView.IsValid() || spawnedView.GetZDO() == null)
             {
                 Debug.LogError("[AgentDeath] Respawn failed, spawned agent has no ZDO");
-                Destroy(spawned);
+                SafeDestroyObject(spawned);
                 return false;
             }
 
@@ -192,12 +192,60 @@ namespace Modules.Death
                 return true;
             }
 
-            if (_nview != null && _nview.IsOwner())
-                ZNetScene.instance?.Destroy(gameObject);
-            else
-                Destroy(gameObject);
-
+            SafeDestroyThisTombstone();
             return true;
+        }
+
+        private void SafeDestroyThisTombstone()
+        {
+            if (_nview == null)
+                _nview = GetComponent<ZNetView>();
+
+            if (_nview != null)
+            {
+                if (!_nview.IsValid())
+                    return;
+
+                if (!_nview.IsOwner())
+                    _nview.ClaimOwnership();
+
+                if (ZNetScene.instance != null)
+                {
+                    ZNetScene.instance.Destroy(gameObject);
+                    return;
+                }
+
+                return;
+            }
+
+            Destroy(gameObject);
+        }
+
+        private static void SafeDestroyObject(GameObject target)
+        {
+            if (target == null)
+                return;
+
+            ZNetView view = target.GetComponent<ZNetView>();
+
+            if (view != null)
+            {
+                if (!view.IsValid())
+                    return;
+
+                if (!view.IsOwner())
+                    view.ClaimOwnership();
+
+                if (ZNetScene.instance != null)
+                {
+                    ZNetScene.instance.Destroy(target);
+                    return;
+                }
+
+                return;
+            }
+
+            Destroy(target);
         }
 
         private static Vector3 FindSpawnPosition(Vector3 origin)
@@ -441,6 +489,13 @@ namespace Modules.Death
     [HarmonyPatch]
     public static class TombstoneInstantResurrectPatch
     {
+        [HarmonyPatch(typeof(TombStone), "Awake")]
+        [HarmonyPostfix]
+        private static void TombStoneAwakePostfix(TombStone __instance)
+        {
+            EnsureAgentTombstoneComponent(__instance);
+        }
+
         [HarmonyPatch(typeof(TombStone), "Interact")]
         [HarmonyPrefix]
         private static bool TombStoneInteractPrefix(TombStone __instance, Humanoid character, bool hold, bool alt)
@@ -448,7 +503,7 @@ namespace Modules.Death
             if (__instance == null || character == null)
                 return true;
 
-            AgentTombstoneResurrect resurrect = __instance.GetComponent<AgentTombstoneResurrect>();
+            AgentTombstoneResurrect resurrect = EnsureAgentTombstoneComponent(__instance);
 
             if (resurrect == null)
                 return true;
@@ -477,7 +532,7 @@ namespace Modules.Death
             if (__instance == null)
                 return;
 
-            AgentTombstoneResurrect resurrect = __instance.GetComponent<AgentTombstoneResurrect>();
+            AgentTombstoneResurrect resurrect = EnsureAgentTombstoneComponent(__instance);
 
             if (resurrect == null)
                 return;
@@ -486,6 +541,25 @@ namespace Modules.Death
 
             if (!string.IsNullOrEmpty(hover))
                 __result = hover;
+        }
+
+        private static AgentTombstoneResurrect EnsureAgentTombstoneComponent(TombStone tombstone)
+        {
+            if (tombstone == null)
+                return null;
+
+            AgentTombstoneResurrect resurrect = tombstone.GetComponent<AgentTombstoneResurrect>();
+
+            if (resurrect != null)
+                return resurrect;
+
+            ZNetView nview = tombstone.GetComponent<ZNetView>();
+            ZDO zdo = nview != null && nview.IsValid() ? nview.GetZDO() : null;
+
+            if (zdo == null || !zdo.GetBool(AgentTombstoneResurrect.AgentTombstoneKey, false))
+                return null;
+
+            return tombstone.gameObject.AddComponent<AgentTombstoneResurrect>();
         }
     }
 }

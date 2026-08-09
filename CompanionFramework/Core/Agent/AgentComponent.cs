@@ -34,6 +34,8 @@ public class AgentComponent : MonoBehaviour
     private const string ZDO_Follow = "agent_follow";
     private const string ZDO_DepositChestUser = "agent_deposit_chest_user";
     private const string ZDO_DepositChestId = "agent_deposit_chest_id";
+    private const string ZDO_DepositChestCount = "agent_deposit_chest_count";
+    private const string ZDO_DepositChestPosPrefix = "agent_deposit_chest_";
     private const string ZDO_BehaviourMode = "agent_behaviour_mode_v2";
     private const string ZDO_StateMode = "agent_state_mode_v2";
     private const string ZDO_TaskMode = "agent_task_mode_v2";
@@ -53,15 +55,7 @@ public class AgentComponent : MonoBehaviour
         }
 
         _zNetView = GetComponent<ZNetView>();
-
-        if (_zNetView == null) ;
-        //Debug.LogError("[Agent] Missing ZNetView on " + gameObject.name);
-        else if (_zNetView.GetZDO() != null) ;
-        ////Debug.Log("[Agent] Awake " + gameObject.name + " instance=" + gameObject.GetInstanceID() + " zdo=" + _zNetView.GetZDO().m_uid);
-        else
-            ////Debug.Log("[Agent] Awake " + gameObject.name + " instance=" + gameObject.GetInstanceID() + " zdo=null");
-
-            CacheVanillaAI();
+        CacheVanillaAI();
         SetupContainer();
         AgentInventoryRegistry.Register(this);
         SetupContext();
@@ -119,14 +113,27 @@ public class AgentComponent : MonoBehaviour
         if (Context == null)
             return;
 
-        if (mode == AgentTaskMode.Patrol && Context.StateMode != AgentStateMode.StayHome)
+        bool requiresHome = mode == AgentTaskMode.Patrol ||
+                            mode == AgentTaskMode.Cook ||
+                            mode == AgentTaskMode.Farming ||
+                            mode == AgentTaskMode.Smelting ||
+                            mode == AgentTaskMode.Repair;
+
+        if (requiresHome && Context.StateMode != AgentStateMode.StayHome)
             Context.StateMode = AgentStateMode.StayHome;
+
+        AgentAssignedBedRestController bedRest = GetComponent<AgentAssignedBedRestController>();
+        if (mode != AgentTaskMode.None && bedRest != null)
+            bedRest.WakeFromAssignedBed("task-changed");
+
+        AgentFishingController fishing = GetComponent<AgentFishingController>();
+        if (fishing != null)
+            fishing.NotifyTaskChanged();
 
         Context.TaskMode = mode;
         Context.SyncLegacyFields();
         SaveBehaviourStateToZDO();
     }
-
     public void SetBehaviourState(AgentBehaviourState state)
     {
         if (Context == null)
@@ -178,11 +185,11 @@ public class AgentComponent : MonoBehaviour
         foreach (BaseAI ai in GetComponents<BaseAI>())
         {
             if (ai != null) ;
-                ////Debug.Log("[Agent] Runtime AI component: " + ai.GetType().Name + " enabled=" + ai.enabled);
+            ////Debug.Log("[Agent] Runtime AI component: " + ai.GetType().Name + " enabled=" + ai.enabled);
         }
 
         if (MonsterAI == null) ;
-            //Debug.LogWarning("[Agent] MonsterAI missing on " + gameObject.name + ". Native combat will not work correctly.");
+        //Debug.LogWarning("[Agent] MonsterAI missing on " + gameObject.name + ". Native combat will not work correctly.");
     }
 
     private void SetupContainer()
@@ -306,15 +313,61 @@ public class AgentComponent : MonoBehaviour
 
     public void SaveHomeToZDO(Vector3 pos, float radius)
     {
-        if (_zNetView == null || !_zNetView.IsValid() || radius <= 0f)
+        ApplyHomeZone(pos, radius, AgentStateMode.StayHome);
+    }
+
+    public void SetHomeZone(Vector3 pos, float radius)
+    {
+        ApplyHomeZone(pos, radius, AgentStateMode.StayHome);
+    }
+
+    public void SetHomeRadius(float radius)
+    {
+        Vector3 center = transform.position;
+
+        if (Context != null && Context.HomeZone != null && Context.HomeZone.IsSet)
+            center = Context.HomeZone.Center;
+
+        ApplyHomeZone(center, radius, Context != null ? Context.StateMode : AgentStateMode.StayHome);
+    }
+
+    private void ApplyHomeZone(Vector3 pos, float radius, AgentStateMode stateMode)
+    {
+        if (radius <= 0f)
+            return;
+
+        if (Context == null)
+            SetupContext();
+
+        if (Context.HomeZone == null)
+            Context.HomeZone = new HomeZoneController();
+
+        Context.HomeZone.SetHomeZone(pos, radius);
+        Context.HasHomeZone = true;
+        Context.IdleOrigin = pos;
+        Context.IdleRadius = Mathf.Max(Context.IdleRadius, radius);
+
+        if (stateMode == AgentStateMode.StayHome)
+            Context.StateMode = AgentStateMode.StayHome;
+
+        Context.SyncLegacyFields();
+        SaveHomeZoneValuesToZDO(pos, radius);
+        SaveBehaviourStateToZDO();
+    }
+
+    private void SaveHomeZoneValuesToZDO(Vector3 pos, float radius)
+    {
+        if (_zNetView == null || !_zNetView.IsValid())
             return;
 
         ZDO zdo = _zNetView.GetZDO();
+        if (zdo == null)
+            return;
+
         zdo.Set(ZDO_HomeX, pos.x);
         zdo.Set(ZDO_HomeY, pos.y);
         zdo.Set(ZDO_HomeZ, pos.z);
         zdo.Set(ZDO_HomeRadius, radius);
-        ////Debug.Log("[Agent] HomeZone saved");
     }
 
     public void SaveBehaviourStateToZDO()
@@ -338,6 +391,9 @@ public class AgentComponent : MonoBehaviour
         zdo.Set(ZDO_StayHome, Context.StateMode == AgentStateMode.StayHome);
         zdo.Set(ZDO_FollowStopDistance, Context.FollowStopDistance);
         zdo.Set(ZDO_FollowResumeDistance, Context.FollowResumeDistance);
+
+        if (Context.HomeZone != null && Context.HomeZone.IsSet)
+            SaveHomeZoneValuesToZDO(Context.HomeZone.Center, Context.HomeZone.Radius);
     }
 
     public void SaveFollowToZDO(bool follow)
@@ -442,13 +498,27 @@ public class AgentComponent : MonoBehaviour
 
     public void SaveDepositChestToZDO(ZDOID chestId)
     {
+        SaveDepositChestToZDO(chestId, Vector3.zero);
+    }
+
+    public void SaveDepositChestToZDO(ZDOID chestId, Vector3 chestPosition)
+    {
         if (_zNetView == null || !_zNetView.IsValid())
             return;
 
         ZDO zdo = _zNetView.GetZDO();
+        if (zdo == null)
+            return;
+
         zdo.Set(ZDO_DepositChestUser, chestId.UserID);
         zdo.Set(ZDO_DepositChestId, chestId.ID);
-        ////Debug.Log("[Agent] Deposit chest saved: " + chestId);
+
+        if (chestPosition != Vector3.zero)
+        {
+            zdo.Set(ZDO_DepositChestCount, 1);
+            zdo.Set(ZDO_DepositChestPosPrefix + "0_pos", chestPosition);
+        }
+        ////Debug.Log("[Agent] Deposit chest saved: " + chestId + " pos=" + chestPosition);
     }
 
     private void FixAllTMPFonts()

@@ -16,6 +16,11 @@ namespace Integration
 
             if (agent != null)
             {
+                AgentAssignedBedRestController rest = go.GetComponentInParent<AgentAssignedBedRestController>();
+
+                if (rest != null)
+                    rest.WakeFromAssignedBed(alt ? "player radial" : "player interaction");
+
                 //Debug.Log("[Agent] ✅ Intercepted NPC interaction");
 
                 agent.Interact(__instance, hold, alt);
@@ -103,11 +108,19 @@ namespace Integration
             if (agent == null)
                 return;
 
-            // ✅ Replace vanilla text completely
+            var hover = __instance.GetComponent<AgentContainerComponent>();
+            if (hover != null)
+            {
+                __result = hover.GetHoverText();
+                return;
+            }
+
             __result =
                 $"{__instance.GetHoverName()}\n" +
+                $"State: {agent.Context.StateMode} | Job: {agent.Context.TaskMode}\n" +
+                $"Tactics: {agent.Context.BehaviourMode}\n" +
                 "[E] Open Inventory\n" +
-                "[Shift + E] Set Home Zone";
+                "[Shift + E] Mode";
         }
     }
 }

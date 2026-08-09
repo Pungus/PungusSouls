@@ -34,7 +34,12 @@ public static class AgentPrefabInstallerPatch
         for (int i = 0; i < scene.m_prefabs.Count; i++)
         {
             GameObject prefab = scene.m_prefabs[i];
-
+            if (prefab != null && prefab.name.IndexOf("Hellkite", System.StringComparison.OrdinalIgnoreCase) >= 0)
+            {
+                Debug.Log("[FlyInstallDebug] Found prefab in ZNetScene: " + prefab.name
+                    + " registryMatch=" + AgentPrefabRegistry.TryGetDefinition(prefab, out AgentPrefabDefinition def)
+                    + " validAgentBase=" + AgentPrefabRegistry.IsValidAgentBasePrefab(prefab));
+            }
             if (prefab == null)
                 continue;
 

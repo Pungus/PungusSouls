@@ -333,7 +333,7 @@ public static class PrefabManager
         BundleId id = new() { assetBundleFileName = assetBundleFileName, folderName = folderName };
         if (bundleCache.TryGetValue(id, out AssetBundle existingBundle))
         {
-            Debug.LogWarning($"AssetBundle {assetBundleFileName} in folder {folderName} is already loaded.");
+            //Debug.LogWarning($"AssetBundle {assetBundleFileName} in folder {folderName} is already loaded.");
             return existingBundle;
         }
 

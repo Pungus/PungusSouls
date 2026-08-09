@@ -117,7 +117,7 @@ namespace Modules.Death
 
             if (tombContainer != null && sourceInventory != null)
                 MoveInventoryToTombstone(sourceInventory, tombContainer);
-            
+
             ZNetView tombView = tombstone.GetComponent<ZNetView>();
             ZDO tombZdo = tombView != null && tombView.IsValid() ? tombView.GetZDO() : null;
 
@@ -309,7 +309,8 @@ namespace Modules.Death
         [HarmonyPatch(typeof(ZNetScene), nameof(ZNetScene.Awake))]
         public static class CustomPrefabPatch
         {
-            private static void Postfix(ZNetScene __instance)
+            [HarmonyPostfix]
+            private static void RegisterSifTombstonePostfix(ZNetScene __instance)
             {
                 try
                 {
@@ -365,7 +366,8 @@ namespace Modules.Death
         [HarmonyPatch(typeof(TombStone), "UpdateDespawn")]
         public static class AgentTombstonePatch
         {
-            static bool Prefix(
+            [HarmonyPrefix]
+            private static bool PreventAgentTombstoneDespawnPrefix(
                 TombStone __instance,
                 ref Container ___m_container)
             {

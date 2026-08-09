@@ -7,7 +7,8 @@ public class AgentItemPickup : MonoBehaviour
     private const string ZDO_AutoPickup = "agent_auto_pickup";
     private const float PickupRange = 3.5f;
     private const float PickupInterval = 0.35f;
-    private const float FullInventoryMessageInterval = 3f;
+    private const float FullInventoryMessageInterval = 8f;
+    private const float PickupPauseWeightRatio = 0.75f;
     private const int BufferSize = 96;
 
     private readonly Collider[] _buffer = new Collider[BufferSize];
@@ -71,6 +72,9 @@ public class AgentItemPickup : MonoBehaviour
 
         _pickupTimer -= Time.deltaTime;
         _fullInventoryMessageTimer -= Time.deltaTime;
+
+        if (ShouldPausePickupForWeight(inventory))
+            return;
 
         if (_pickupTimer > 0f)
             return;
@@ -137,6 +141,14 @@ public class AgentItemPickup : MonoBehaviour
         }
     }
 
+    private bool ShouldPausePickupForWeight(Inventory inventory)
+    {
+        if (inventory == null || _agent == null)
+            return false;
+
+        return inventory.GetTotalWeight() >= Mathf.Max(1f, _agent.MaxCarryWeight) * PickupPauseWeightRatio;
+    }
+
     private ItemDrop GetItemDrop(Collider collider)
     {
         if (collider == null)
@@ -184,7 +196,7 @@ public class AgentItemPickup : MonoBehaviour
 
         if (inventory.GetTotalWeight() + item.GetWeight() > maxWeight)
         {
-            ShowFullMessage("Too heavy for NPC");
+            ShowFullMessage("NPC inventory full");
             return false;
         }
 
@@ -209,13 +221,24 @@ public class AgentItemPickup : MonoBehaviour
 
         ZNetView view = drop.GetComponent<ZNetView>();
 
-        if (view != null && view.IsValid() && !view.IsOwner())
-            view.ClaimOwnership();
+        if (view != null)
+        {
+            if (!view.IsValid())
+                return;
 
-        if (ZNetScene.instance != null)
-            ZNetScene.instance.Destroy(drop.gameObject);
-        else
-            Destroy(drop.gameObject);
+            if (!view.IsOwner())
+                view.ClaimOwnership();
+
+            if (ZNetScene.instance != null)
+            {
+                ZNetScene.instance.Destroy(drop.gameObject);
+                return;
+            }
+
+            return;
+        }
+
+        Destroy(drop.gameObject);
     }
 
     private Inventory GetInventory()

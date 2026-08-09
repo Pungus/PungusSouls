@@ -33,6 +33,7 @@ public class RadialMenu : MonoBehaviour
     private Action<int> _legacyCallback;
     private RadialMenuEntry _selectedEntry;
     private int _selectedIndex = -1;
+    private int _selectedRootIndex = -1;
     private RectTransform _rect;
 
     private const float RootRadius = 190f;
@@ -108,6 +109,8 @@ public class RadialMenu : MonoBehaviour
         if (_rect == null)
             _rect = GetComponent<RectTransform>();
 
+        int previousRootIndex = _selectedRootIndex;
+
         ClearObjects(_items);
         ClearObjects(_children);
         _selectedEntry = null;
@@ -129,6 +132,9 @@ public class RadialMenu : MonoBehaviour
             );
             _items.Add(item);
         }
+
+        if (previousRootIndex >= 0 && previousRootIndex < _roots.Count)
+            SelectRoot(previousRootIndex);
     }
 
     private void SelectRoot(int index)
@@ -138,6 +144,7 @@ public class RadialMenu : MonoBehaviour
 
         _selectedEntry = _roots[index];
         _selectedIndex = index;
+        _selectedRootIndex = index;
         ClearObjects(_children);
 
         RadialMenuEntry root = _roots[index];

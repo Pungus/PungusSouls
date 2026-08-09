@@ -1,6 +1,8 @@
 using HarmonyLib;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
+using System.Reflection;
 using UnityEngine;
 
 namespace PungusSouls
@@ -12,8 +14,8 @@ namespace PungusSouls
         private const float DuplicateDistance = 2f;
         private const float PositionScale = 10f;
 
-        private static readonly List<Vector3> BonfirePositions = new();
-        private static readonly List<Minimap.PinData> BonfirePins = new();
+        private static readonly List<Vector3> BonfirePositions = new List<Vector3>();
+        private static readonly List<Minimap.PinData> BonfirePins = new List<Minimap.PinData>();
 
         private static bool loaded;
         private static Sprite bonfirePinSprite;
@@ -21,20 +23,25 @@ namespace PungusSouls
         public static bool TravelMode;
         public static Vector3? CurrentBonfirePosition;
 
+        public static void ResetForWorld()
+        {
+            loaded = false;
+            TravelMode = false;
+            CurrentBonfirePosition = null;
+            BonfirePositions.Clear();
+            BonfirePins.Clear();
+        }
+
         public static void Load()
         {
             if (loaded)
-            {
                 return;
-            }
 
             BonfirePositions.Clear();
             BonfirePins.Clear();
 
             if (ZoneSystem.instance == null)
-            {
                 return;
-            }
 
             IEnumerable keys = GetGlobalKeys();
 
@@ -42,25 +49,20 @@ namespace PungusSouls
             {
                 foreach (object keyObject in keys)
                 {
-                    if (keyObject is not string key)
-                    {
+                    string key = keyObject as string;
+
+                    if (string.IsNullOrEmpty(key))
                         continue;
-                    }
 
                     if (!TryDecodeBonfireKey(key, out Vector3 position))
-                    {
                         continue;
-                    }
 
                     if (!HasBonfireNear(position, DuplicateDistance))
-                    {
                         BonfirePositions.Add(position);
-                    }
                 }
             }
 
             loaded = true;
-            Debug.Log($"[Bonfire] Loaded {BonfirePositions.Count} bonfires from world global keys");
         }
 
         public static void RegisterBonfire(Vector3 position)
@@ -70,55 +72,40 @@ namespace PungusSouls
             Vector3 storedPosition = QuantizePosition(position);
 
             if (!HasBonfireNear(storedPosition, DuplicateDistance))
-            {
                 BonfirePositions.Add(storedPosition);
-            }
 
             if (ZoneSystem.instance != null)
-            {
                 ZoneSystem.instance.SetGlobalKey(EncodeBonfireKey(storedPosition));
-            }
 
             EnsureMapPin(storedPosition);
-
-            Debug.Log($"[Bonfire] Registered bonfire position {storedPosition}");
-            Debug.Log($"[Bonfire] Bonfire count = {BonfirePositions.Count}");
         }
 
         public static bool IsActivated(Vector3 position)
         {
             Load();
-            return HasBonfireNear(position, DuplicateDistance);
+            return HasBonfireNear(QuantizePosition(position), DuplicateDistance);
         }
 
         public static void RefreshMapPins()
         {
             if (Minimap.instance == null)
-            {
                 return;
-            }
 
             Load();
 
-            foreach (Vector3 position in BonfirePositions)
-            {
-                EnsureMapPin(position);
-            }
+            for (int i = 0; i < BonfirePositions.Count; i++)
+                EnsureMapPin(BonfirePositions[i]);
         }
 
         public static void EnsureMapPin(Vector3 position)
         {
             if (Minimap.instance == null)
-            {
                 return;
-            }
 
             Vector3 storedPosition = QuantizePosition(position);
 
             if (HasExistingBonfireMapPin(storedPosition))
-            {
                 return;
-            }
 
             Minimap.PinData pin = Minimap.instance.AddPin(
                 storedPosition,
@@ -134,23 +121,17 @@ namespace PungusSouls
         public static bool IsBonfirePin(Minimap.PinData pin)
         {
             if (pin == null)
-            {
                 return false;
-            }
 
             if (pin.m_name != PinName)
-            {
                 return false;
-            }
 
             Load();
 
-            foreach (Vector3 position in BonfirePositions)
+            for (int i = 0; i < BonfirePositions.Count; i++)
             {
-                if (Utils.DistanceXZ(pin.m_pos, position) < DuplicateDistance)
-                {
+                if (Utils.DistanceXZ(pin.m_pos, BonfirePositions[i]) < DuplicateDistance)
                     return true;
-                }
             }
 
             return false;
@@ -159,27 +140,30 @@ namespace PungusSouls
         public static void ApplyBonfireIcon(Minimap.PinData pin)
         {
             if (pin == null)
-            {
                 return;
-            }
 
             Sprite sprite = GetBonfirePinSprite();
 
             if (sprite == null)
-            {
                 return;
-            }
 
             pin.m_icon = sprite;
 
             if (pin.m_iconElement != null)
-            {
                 pin.m_iconElement.sprite = sprite;
-            }
+        }
+
+        public static void CancelTravel()
+        {
+            TravelMode = false;
+            CurrentBonfirePosition = null;
         }
 
         private static IEnumerable GetGlobalKeys()
         {
+            if (ZoneSystem.instance == null)
+                return null;
+
             object keys = Traverse.Create(ZoneSystem.instance)
                 .Field("m_globalKeys")
                 .GetValue();
@@ -189,12 +173,10 @@ namespace PungusSouls
 
         private static bool HasBonfireNear(Vector3 position, float radius)
         {
-            foreach (Vector3 existing in BonfirePositions)
+            for (int i = 0; i < BonfirePositions.Count; i++)
             {
-                if (Utils.DistanceXZ(existing, position) < radius)
-                {
+                if (Utils.DistanceXZ(BonfirePositions[i], position) < radius)
                     return true;
-                }
             }
 
             return false;
@@ -203,41 +185,33 @@ namespace PungusSouls
         private static bool HasExistingBonfireMapPin(Vector3 position)
         {
             if (Minimap.instance == null)
-            {
                 return false;
-            }
 
             List<Minimap.PinData> pins = Traverse.Create(Minimap.instance)
                 .Field("m_pins")
                 .GetValue<List<Minimap.PinData>>();
 
             if (pins == null)
-            {
                 return false;
-            }
 
-            foreach (Minimap.PinData pin in pins)
+            for (int i = 0; i < pins.Count; i++)
             {
+                Minimap.PinData pin = pins[i];
+
                 if (pin == null)
-                {
                     continue;
-                }
 
                 if (pin.m_name != PinName)
-                {
                     continue;
-                }
 
-                if (Utils.DistanceXZ(pin.m_pos, position) < DuplicateDistance)
-                {
-                    if (!BonfirePins.Contains(pin))
-                    {
-                        BonfirePins.Add(pin);
-                    }
+                if (Utils.DistanceXZ(pin.m_pos, position) >= DuplicateDistance)
+                    continue;
 
-                    ApplyBonfireIcon(pin);
-                    return true;
-                }
+                if (!BonfirePins.Contains(pin))
+                    BonfirePins.Add(pin);
+
+                ApplyBonfireIcon(pin);
+                return true;
             }
 
             return false;
@@ -265,37 +239,25 @@ namespace PungusSouls
             position = Vector3.zero;
 
             if (string.IsNullOrEmpty(key))
-            {
                 return false;
-            }
 
             if (!key.StartsWith(GlobalKeyPrefix))
-            {
                 return false;
-            }
 
             string payload = key.Substring(GlobalKeyPrefix.Length);
             string[] parts = payload.Split('_');
 
             if (parts.Length != 3)
-            {
                 return false;
-            }
 
             if (!int.TryParse(parts[0], out int x))
-            {
                 return false;
-            }
 
             if (!int.TryParse(parts[1], out int y))
-            {
                 return false;
-            }
 
             if (!int.TryParse(parts[2], out int z))
-            {
                 return false;
-            }
 
             position = new Vector3(
                 x / PositionScale,
@@ -304,49 +266,63 @@ namespace PungusSouls
 
             return true;
         }
+
         private static Sprite GetBonfirePinSprite()
         {
             if (bonfirePinSprite != null)
-            {
                 return bonfirePinSprite;
-            }
 
-            System.Reflection.Assembly assembly =
-                System.Reflection.Assembly.GetExecutingAssembly();
-
+            Assembly assembly = Assembly.GetExecutingAssembly();
             string resourceName = null;
+            string[] resourceNames = assembly.GetManifestResourceNames();
 
-            foreach (string name in assembly.GetManifestResourceNames())
+            for (int i = 0; i < resourceNames.Length; i++)
             {
-                Debug.Log("[PungusSouls] Embedded resource: " + name);
+                string name = resourceNames[i];
 
                 if (name.EndsWith("bonfireicon.png", System.StringComparison.OrdinalIgnoreCase))
                 {
                     resourceName = name;
+                    break;
                 }
             }
 
             if (string.IsNullOrEmpty(resourceName))
             {
-                Debug.LogError("[Bonfire] Could not find embedded resource ending with bonfireicon.png");
+                Debug.LogWarning("[Bonfire] Could not find embedded resource ending with bonfireicon.png");
                 return null;
             }
 
-            bonfirePinSprite =
-                AgentNpcIconRegistry.LoadSpriteFromEmbeddedResource(
-                    assembly,
-                    resourceName);
-
-            if (bonfirePinSprite == null)
+            using (Stream stream = assembly.GetManifestResourceStream(resourceName))
             {
-                Debug.LogError("[Bonfire] Failed to load embedded bonfire icon from " + resourceName);
-            }
-            else
-            {
-                Debug.Log("[Bonfire] Loaded embedded bonfire icon from " + resourceName);
-            }
+                if (stream == null)
+                    return null;
 
-            return bonfirePinSprite;
+                byte[] data = new byte[stream.Length];
+                int read = stream.Read(data, 0, data.Length);
+
+                if (read <= 0)
+                    return null;
+
+                Texture2D texture = new Texture2D(2, 2, TextureFormat.RGBA32, false);
+
+                if (!texture.LoadImage(data))
+                {
+                    Object.Destroy(texture);
+                    return null;
+                }
+
+                texture.name = "bonfireicon";
+
+                bonfirePinSprite = Sprite.Create(
+                    texture,
+                    new Rect(0f, 0f, texture.width, texture.height),
+                    new Vector2(0.5f, 0.5f),
+                    100f);
+
+                bonfirePinSprite.name = "bonfireicon";
+                return bonfirePinSprite;
+            }
         }
     }
 }

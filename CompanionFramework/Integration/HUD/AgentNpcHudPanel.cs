@@ -71,7 +71,7 @@ public class AgentNpcHudPanel : MonoBehaviour
         _rootRect.anchorMin = new Vector2(1f, 1f);
         _rootRect.anchorMax = new Vector2(1f, 1f);
         _rootRect.pivot = new Vector2(1f, 1f);
-        _rootRect.sizeDelta = new Vector2(255f, 460f);
+        _rootRect.sizeDelta = new Vector2(335f, 740f);
         _rootRect.anchoredPosition = new Vector2(-18f, -238f);
 
         for (int i = 0; i < MaxRows; i++)
@@ -93,8 +93,8 @@ public class AgentNpcHudPanel : MonoBehaviour
         rect.anchorMin = new Vector2(1f, 1f);
         rect.anchorMax = new Vector2(1f, 1f);
         rect.pivot = new Vector2(1f, 1f);
-        rect.sizeDelta = new Vector2(255f, 52f);
-        rect.anchoredPosition = new Vector2(0f, -index * 56f);
+        rect.sizeDelta = new Vector2(335f, 88f);
+        rect.anchoredPosition = new Vector2(0f, -index * 92f);
 
         Image bg = root.GetComponent<Image>();
         bg.color = new Color(0.08f, 0.06f, 0.04f, 0.68f);
@@ -123,12 +123,12 @@ public class AgentNpcHudPanel : MonoBehaviour
         nameRect.offsetMin = new Vector2(48f, -22f);
         nameRect.offsetMax = new Vector2(-6f, -3f);
 
-        TextMeshProUGUI lines = CreateText(root.transform, "Stats", 11f, TextAlignmentOptions.Left);
+        TextMeshProUGUI lines = CreateText(root.transform, "Stats", 10f, TextAlignmentOptions.Left);
         RectTransform linesRect = lines.GetComponent<RectTransform>();
         linesRect.anchorMin = new Vector2(0f, 0f);
         linesRect.anchorMax = new Vector2(1f, 1f);
         linesRect.offsetMin = new Vector2(48f, 4f);
-        linesRect.offsetMax = new Vector2(-6f, -22f);
+        linesRect.offsetMax = new Vector2(-6f, -24f);
 
         return new Row { Root = root, Icon = icon, Name = name, Lines = lines };
     }
@@ -153,7 +153,7 @@ public class AgentNpcHudPanel : MonoBehaviour
         tmp.color = new Color(1f, 0.95f, 0.78f, 1f);
         tmp.raycastTarget = false;
         tmp.enableWordWrapping = false;
-        tmp.overflowMode = TextOverflowModes.Ellipsis;
+        tmp.overflowMode = TextOverflowModes.Overflow;
         return tmp;
     }
 
@@ -208,20 +208,106 @@ public class AgentNpcHudPanel : MonoBehaviour
 
         float health = character != null ? character.GetHealth() : 0f;
         float maxHealth = character != null ? character.GetMaxHealth() : 0f;
+
         AgentStamina stamina = agent.GetComponent<AgentStamina>();
         float staminaValue = stamina != null ? stamina.Stamina : 0f;
         float maxStamina = stamina != null ? stamina.MaxStamina : 0f;
-        AgentFood food = agent.GetComponent<AgentFood>();
-        int activeFood = food != null ? GetActiveFoodCount(food) : 0;
+
         AgentRested rested = agent.GetComponent<AgentRested>();
         float restedRemaining = rested != null ? rested.RestedRemaining : 0f;
         int comfort = rested != null ? rested.ComfortLevel : 0;
-        string mode = agent.Context != null ? agent.Context.StateMode + " / " + agent.Context.TaskMode : "Unknown";
 
         row.Lines.text =
             "HP " + health.ToString("0") + "/" + maxHealth.ToString("0") +
             "  STA " + staminaValue.ToString("0") + "/" + maxStamina.ToString("0") +
-            "\nFood " + activeFood + "/3  Rested " + FormatTime(restedRemaining) + " C" + comfort + "  " + mode;
+            "\n" + GetContextSummary(agent) +
+            "\nRest " + FormatTime(restedRemaining) + " C" + comfort + "  " + GetFoodSummary(agent) +
+            "\n" + GetCarrySummary(agent) + "  " + GetToolSummary(agent);
+    }
+    private static string GetContextSummary(AgentComponent agent)
+    {
+        if (agent == null || agent.Context == null)
+            return "Unknown";
+
+        return agent.Context.StateMode + " | " + agent.Context.TaskMode + " | " + agent.Context.BehaviourMode;
+    }
+
+    private static string GetCarrySummary(AgentComponent agent)
+    {
+        if (agent == null || agent.ValheimContainer == null || agent.ValheimContainer.m_inventory == null)
+            return "Carry --/--";
+
+        float weight = agent.ValheimContainer.m_inventory.GetTotalWeight();
+        float max = Mathf.Max(1f, agent.MaxCarryWeight);
+        return "Carry " + weight.ToString("0") + "/" + max.ToString("0");
+    }
+
+    private static string GetFoodSummary(AgentComponent agent)
+    {
+        AgentFood food = agent != null ? agent.GetComponent<AgentFood>() : null;
+
+        if (food == null)
+            return "Food --";
+
+        return "Food " + GetActiveFoodCount(food) + "/3";
+    }
+
+    private static string GetToolSummary(AgentComponent agent)
+    {
+        if (agent == null)
+            return "Tool --";
+
+        Humanoid humanoid = agent.GetComponent<Humanoid>();
+        ItemDrop.ItemData item = humanoid != null ? humanoid.GetCurrentWeapon() : null;
+
+        if (item == null && agent.ValheimContainer != null && agent.ValheimContainer.m_inventory != null)
+            item = FindFirstWorkTool(agent.ValheimContainer.m_inventory);
+
+        return "Tool " + FormatItemName(item);
+    }
+
+    private static ItemDrop.ItemData FindFirstWorkTool(Inventory inventory)
+    {
+        if (inventory == null)
+            return null;
+
+        List<ItemDrop.ItemData> items = inventory.GetAllItems();
+
+        for (int i = 0; i < items.Count; i++)
+        {
+            ItemDrop.ItemData item = items[i];
+
+            if (item == null || item.m_shared == null)
+                continue;
+
+            HitData.DamageTypes damage = item.GetDamage();
+
+            if (damage.m_chop > 0f || damage.m_pickaxe > 0f)
+                return item;
+        }
+
+        return null;
+    }
+
+    private static string FormatItemName(ItemDrop.ItemData item)
+    {
+        if (item == null)
+            return "--";
+
+        string name = string.Empty;
+
+        if (item.m_shared != null && !string.IsNullOrEmpty(item.m_shared.m_name))
+            name = item.m_shared.m_name;
+        else if (item.m_dropPrefab != null)
+            name = item.m_dropPrefab.name;
+
+        if (string.IsNullOrEmpty(name))
+            return "--";
+
+        if (Localization.instance != null)
+            name = Localization.instance.Localize(name);
+
+        return name.Replace("$item_", string.Empty).Replace("_", " ");
     }
 
     private static int GetActiveFoodCount(AgentFood food)

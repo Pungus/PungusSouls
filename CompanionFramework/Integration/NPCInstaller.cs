@@ -37,6 +37,25 @@ public static class NpcInstaller
         profile.InventoryHeight = definition.InventoryHeight;
         profile.TombstonePrefabName = definition.TombstonePrefabName;
         profile.IconId = definition.Id;
+        profile.RequiresInteractionToRegister = definition.RequiresInteractionToRegister;
+        profile.CanFly = definition.CanFly;
+        profile.HiddenRendererNameContains = definition.HiddenRendererNameContains ?? new string[0];
+        profile.HiddenBodyParts = definition.HiddenBodyParts ?? new BodypartSystem.bodyPart[0];
+        profile.AmputateBodyParts = definition.AmputateBodyParts;
+        profile.BodyMeshNameContains = definition.BodyMeshNameContains ?? new string[0];
+        profile.ExcludedMeshNameContains = definition.ExcludedMeshNameContains ?? new string[0];
+        profile.EnableJumpMotionAssist = definition.EnableJumpMotionAssist;
+        profile.JumpAssistForwardVelocity = definition.JumpAssistForwardVelocity;
+        profile.JumpAssistUpVelocity = definition.JumpAssistUpVelocity;
+        profile.JumpAssistDuration = definition.JumpAssistDuration;
+        profile.JumpAssistMaxTargetDistance = definition.JumpAssistMaxTargetDistance;
+        profile.JumpAssistClipNameContains = definition.JumpAssistClipNameContains ?? new[]
+        {
+            "jump",
+            "leap",
+            "pounce"
+        };
+        AgentPrefabRegistry.ApplyNpcBodyHider(prefab, profile);
     }
 
     private static void EnsureTameable(GameObject prefab)

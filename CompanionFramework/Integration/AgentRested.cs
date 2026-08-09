@@ -186,7 +186,7 @@ public class AgentRested : MonoBehaviour
     private int CalculateComfortLevel()
     {
         Dictionary<string, int> bestByGroup = new Dictionary<string, int>();
-        Piece[] pieces = UnityEngine.Object.FindObjectsOfType<Piece>();
+        Piece[] pieces = UnityEngine.Object.FindObjectsByType<Piece>(FindObjectsSortMode.None);
 
         foreach (Piece piece in pieces)
         {
@@ -270,7 +270,7 @@ public class AgentRested : MonoBehaviour
 
     private bool IsNearActiveFire()
     {
-        Fireplace[] fireplaces = UnityEngine.Object.FindObjectsOfType<Fireplace>();
+        Fireplace[] fireplaces = UnityEngine.Object.FindObjectsByType<Fireplace>(FindObjectsSortMode.None);
 
         foreach (Fireplace fireplace in fireplaces)
         {
@@ -343,7 +343,7 @@ public class AgentRested : MonoBehaviour
 
     private bool IsNearBed()
     {
-        Bed[] beds = UnityEngine.Object.FindObjectsOfType<Bed>();
+        Bed[] beds = UnityEngine.Object.FindObjectsByType<Bed>(FindObjectsSortMode.None);
 
         foreach (Bed bed in beds)
         {

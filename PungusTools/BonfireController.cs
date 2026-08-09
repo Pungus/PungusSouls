@@ -6,42 +6,33 @@ namespace PungusSouls
 {
     public class BonfireController : MonoBehaviour, Hoverable, Interactable
     {
-        private ZNetView m_nview;
-        private GameObject enabledRoot;
+        private ZNetView _zNetView;
+        private GameObject _enabledRoot;
 
         private void Awake()
         {
-            m_nview = GetComponentInParent<ZNetView>();
-
-            Debug.Log($"[Bonfire] Awake {gameObject.name} {GetBonfirePosition()}");
-            Debug.Log($"[Bonfire] ZDO={(m_nview != null && m_nview.GetZDO() != null)}");
-
-            foreach (Transform t in GetComponentsInChildren<Transform>(true))
-            {
-                if (t.name == "Enabled")
-                {
-                    enabledRoot = t.gameObject;
-                }
-            }
+            _zNetView = GetComponentInParent<ZNetView>();
+            _enabledRoot = FindChildObject("Enabled");
 
             if (BonfireManager.IsActivated(GetBonfirePosition()))
-            {
                 BonfireManager.EnsureMapPin(GetBonfirePosition());
-            }
 
             RefreshState();
         }
 
-        private void Start()
+        private GameObject FindChildObject(string childName)
         {
-            Debug.Log($"[Bonfire] ZNetView Valid = {m_nview != null && m_nview.IsValid()}");
-        }
+            Transform[] transforms = GetComponentsInChildren<Transform>(true);
 
-        private void OnDestroy()
-        {
-            Debug.Log($"[Bonfire] DESTROYING {gameObject.name} {GetBonfirePosition()}");
-            Debug.Log($"[Bonfire] Scene = {gameObject.scene.name}");
-            Debug.Log($"[Bonfire] ActiveInHierarchy = {gameObject.activeInHierarchy}");
+            for (int i = 0; i < transforms.Length; i++)
+            {
+                Transform child = transforms[i];
+
+                if (child != null && child.name == childName)
+                    return child.gameObject;
+            }
+
+            return null;
         }
 
         private Vector3 GetBonfirePosition()
@@ -49,9 +40,7 @@ namespace PungusSouls
             Transform marker = transform.Find("BonfirePinPoint");
 
             if (marker != null)
-            {
                 return marker.position;
-            }
 
             return transform.position;
         }
@@ -63,43 +52,45 @@ namespace PungusSouls
 
         private void RefreshState()
         {
-            if (enabledRoot == null)
-            {
+            if (_enabledRoot == null)
                 return;
-            }
 
-            enabledRoot.SetActive(IsActivated());
+            _enabledRoot.SetActive(IsActivated());
         }
 
         private void Activate()
         {
             Vector3 position = GetBonfirePosition();
 
-            if (enabledRoot != null)
+            if (_enabledRoot != null)
             {
-                enabledRoot.SetActive(true);
+                _enabledRoot.SetActive(true);
 
-                foreach (ParticleSystem ps in enabledRoot.GetComponentsInChildren<ParticleSystem>(true))
+                ParticleSystem[] particleSystems = _enabledRoot.GetComponentsInChildren<ParticleSystem>(true);
+
+                for (int i = 0; i < particleSystems.Length; i++)
                 {
-                    ps.Play(true);
+                    if (particleSystems[i] != null)
+                        particleSystems[i].Play(true);
                 }
             }
 
             BonfireManager.RegisterBonfire(position);
             RefreshState();
 
-            MessageHud.instance.ShowMessage(
-                MessageHud.MessageType.Center,
-                "Bonfire lit");
+            if (MessageHud.instance != null)
+                MessageHud.instance.ShowMessage(MessageHud.MessageType.Center, "Bonfire lit");
         }
 
         private void Rest(Player player)
         {
+            if (player == null)
+                return;
+
             player.Heal(9999f);
 
-            MessageHud.instance.ShowMessage(
-                MessageHud.MessageType.Center,
-                "You rest at the bonfire.");
+            if (MessageHud.instance != null)
+                MessageHud.instance.ShowMessage(MessageHud.MessageType.Center, "You rest at the bonfire.");
         }
 
         private void StartTravel()
@@ -108,28 +99,47 @@ namespace PungusSouls
             BonfireManager.TravelMode = true;
             BonfireManager.RefreshMapPins();
 
-            Minimap.instance.SetMapMode(
-                Minimap.MapMode.Large);
+            if (Minimap.instance != null)
+                Minimap.instance.SetMapMode(Minimap.MapMode.Large);
 
-            MessageHud.instance.ShowMessage(
-                MessageHud.MessageType.Center,
-                "Select a destination bonfire.");
+            if (MessageHud.instance != null)
+                MessageHud.instance.ShowMessage(MessageHud.MessageType.Center, "Select a destination bonfire.");
         }
 
         public bool Interact(Humanoid user, bool hold, bool alt)
         {
             if (hold)
-            {
                 return false;
-            }
 
             Player player = user as Player;
 
             if (player == null)
-            {
                 return false;
-            }
+            BonfireVegvisirGate gate =
+                BonfireVegvisirGateUtility.FindGate(this);
 
+            if (gate != null &&
+                player != null &&
+                !gate.PlayerHasRegistered(player))
+            {
+                Vegvisir vegvisir = gate.GetVegvisir();
+
+                if (vegvisir != null)
+                {
+                    bool result = vegvisir.Interact(user, hold, alt);
+
+                    if (result)
+                    {
+                        gate.RegisterPlayer(player);
+
+                        MessageHud.instance.ShowMessage(
+                            MessageHud.MessageType.Center,
+                            "Bonfire route discovered.");
+                    }
+
+                    return result;
+                }
+            }
             if (!IsActivated())
             {
                 Activate();
@@ -159,14 +169,11 @@ namespace PungusSouls
         public string GetHoverText()
         {
             if (!IsActivated())
-            {
                 return "<color=yellow><b>E</b></color> Light Bonfire";
-            }
 
-            return
-                "Ancient Bonfire\n" +
-                "<color=yellow><b>E</b></color> Rest\n" +
-                "<color=yellow><b>Shift+E</b></color> Travel";
+            return "Ancient Bonfire\n" +
+                   "<color=yellow><b>E</b></color> Rest\n" +
+                   "<color=yellow><b>Shift+E</b></color> Travel";
         }
 
         [HarmonyPatch(typeof(Minimap), "OnMapLeftClick")]
@@ -175,18 +182,17 @@ namespace PungusSouls
             private static void Postfix(Minimap __instance)
             {
                 if (!BonfireManager.TravelMode)
-                {
                     return;
-                }
+
+                if (__instance == null)
+                    return;
 
                 List<Minimap.PinData> pins = Traverse.Create(__instance)
                     .Field("m_pins")
                     .GetValue<List<Minimap.PinData>>();
 
                 if (pins == null)
-                {
                     return;
-                }
 
                 Vector3 worldPos = (Vector3)Traverse.Create(__instance)
                     .Method("ScreenToWorldPoint", ZInput.mousePosition)
@@ -201,31 +207,29 @@ namespace PungusSouls
                     .GetValue<float>();
 
                 float maxClickDistance = removeRadius * (largeZoom * 2f);
-
                 Minimap.PinData closest = null;
-                float best = float.MaxValue;
+                float bestDistance = float.MaxValue;
 
-                foreach (Minimap.PinData pin in pins)
+                for (int i = 0; i < pins.Count; i++)
                 {
+                    Minimap.PinData pin = pins[i];
+
                     if (!BonfireManager.IsBonfirePin(pin))
-                    {
                         continue;
-                    }
 
                     float distance = Utils.DistanceXZ(worldPos, pin.m_pos);
 
-                    if (distance < best)
+                    if (distance < bestDistance)
                     {
-                        best = distance;
+                        bestDistance = distance;
                         closest = pin;
                     }
                 }
 
-                if (closest == null || best > maxClickDistance)
+                if (closest == null || bestDistance > maxClickDistance)
                 {
-                    MessageHud.instance.ShowMessage(
-                        MessageHud.MessageType.Center,
-                        "Select a bonfire pin.");
+                    if (MessageHud.instance != null)
+                        MessageHud.instance.ShowMessage(MessageHud.MessageType.Center, "Select a bonfire pin.");
 
                     return;
                 }
@@ -233,9 +237,8 @@ namespace PungusSouls
                 if (BonfireManager.CurrentBonfirePosition.HasValue &&
                     Utils.DistanceXZ(closest.m_pos, BonfireManager.CurrentBonfirePosition.Value) < 2f)
                 {
-                    MessageHud.instance.ShowMessage(
-                        MessageHud.MessageType.Center,
-                        "Already at this bonfire.");
+                    if (MessageHud.instance != null)
+                        MessageHud.instance.ShowMessage(MessageHud.MessageType.Center, "Already at this bonfire.");
 
                     return;
                 }
@@ -243,24 +246,16 @@ namespace PungusSouls
                 Player player = Player.m_localPlayer;
 
                 if (player == null)
-                {
                     return;
-                }
 
-                player.TeleportTo(
-                    closest.m_pos,
-                    player.transform.rotation,
-                    true);
+                player.TeleportTo(closest.m_pos, player.transform.rotation, true);
+                BonfireManager.CancelTravel();
 
-                BonfireManager.TravelMode = false;
-                BonfireManager.CurrentBonfirePosition = null;
+                if (Minimap.instance != null)
+                    Minimap.instance.SetMapMode(Minimap.MapMode.Small);
 
-                Minimap.instance.SetMapMode(
-                    Minimap.MapMode.Small);
-
-                MessageHud.instance.ShowMessage(
-                    MessageHud.MessageType.Center,
-                    "Travelled to bonfire.");
+                if (MessageHud.instance != null)
+                    MessageHud.instance.ShowMessage(MessageHud.MessageType.Center, "Travelled to bonfire.");
             }
         }
     }

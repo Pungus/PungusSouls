@@ -142,10 +142,14 @@ public sealed class AgentPortalFollowRuntime : MonoBehaviour
 
         if (body != null)
         {
-            body.velocity = Vector3.zero;
-            body.angularVelocity = Vector3.zero;
             body.position = position;
             body.rotation = rotation;
+
+            if (!body.isKinematic)
+            {
+                body.linearVelocity = Vector3.zero;
+                body.angularVelocity = Vector3.zero;
+            }
         }
 
         agent.transform.position = position;
@@ -279,7 +283,7 @@ public static class AgentPortalFollowPatch
     private static List<AgentComponent> CollectNearbyFollowers(Vector3 playerPosition)
     {
         List<AgentComponent> followers = new List<AgentComponent>();
-        AgentComponent[] agents = UnityEngine.Object.FindObjectsOfType<AgentComponent>();
+        AgentComponent[] agents = UnityEngine.Object.FindObjectsByType<AgentComponent>(FindObjectsSortMode.None);
 
         foreach (AgentComponent agent in agents)
         {

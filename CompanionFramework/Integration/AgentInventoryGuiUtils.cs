@@ -198,15 +198,20 @@ namespace Integration
         public static GameObject Root;
         public static TMP_Dropdown NpcDropdown;
         public static Button AssignButton;
+        public static Button PreviousNpcButton;
+        public static Button NextNpcButton;
         public static TextMeshProUGUI TitleText;
         public static TextMeshProUGUI AssignText;
+        public static TextMeshProUGUI SelectedNpcText;
         public static readonly List<AgentComponent> DropdownAgents = new List<AgentComponent>();
+        private static int SelectedNpcIndex;
 
         private const int MaxDepositChests = 8;
         private const float DuplicateChestDistance = 2f;
         private const float NpcSearchDistance = 80f;
         private static TMP_FontAsset _font;
-
+        private static Container _selectorContainer;
+        private static float _selectorClickLogTimer;
         private static void Postfix(InventoryGui __instance)
         {
             EnsureControls(__instance);
@@ -225,6 +230,8 @@ namespace Integration
             if (Root != null || gui == null)
                 return;
 
+            Debug.LogWarning("[AgentDiagBuild] AgentInventoryGuiUtils v25 chest-selector-fixed loaded");
+
             Transform parent = AgentInventoryGuiShared.FindContainerUiParent(gui);
             if (parent == null)
                 return;
@@ -234,14 +241,15 @@ namespace Integration
             Root.transform.SetParent(parent, false);
 
             RectTransform rootRect = Root.GetComponent<RectTransform>();
-            rootRect.anchorMin = new Vector2(1f, 0.5f);
-            rootRect.anchorMax = new Vector2(1f, 0.5f);
-            rootRect.pivot = new Vector2(0f, 0.5f);
+            rootRect.anchorMin = new Vector2(0.32f, 0.5f);
+            rootRect.anchorMax = new Vector2(0.32f, 0.5f);
+            rootRect.pivot = new Vector2(0.5f, 0.5f);
             rootRect.sizeDelta = new Vector2(255f, 138f);
-            rootRect.anchoredPosition = new Vector2(16f, -8f);
+            rootRect.anchoredPosition = new Vector2(0f, -8f);
 
             Image rootImage = Root.GetComponent<Image>();
             rootImage.color = new Color(0.12f, 0.09f, 0.07f, 0.92f);
+            rootImage.raycastTarget = true;
             AgentInventoryGuiShared.AddBorder(Root.transform);
 
             TitleText = CreateText(Root.transform, "Title", "NPC deposit", 16f, TextAlignmentOptions.Center, new Color(1f, 0.68f, 0.28f, 1f));
@@ -252,9 +260,10 @@ namespace Integration
             titleRect.sizeDelta = new Vector2(-18f, 26f);
             titleRect.anchoredPosition = new Vector2(0f, -8f);
 
-            NpcDropdown = CreateDropdown(Root.transform);
+            CreateNpcSelector(Root.transform);
             AssignButton = CreateButton(Root.transform, "AssignButton", "Add chest to selected NPC", new Vector2(0.5f, 0f), new Vector2(0.5f, 0f), new Vector2(224f, 34f), new Vector2(0f, 16f), out AssignText);
             AssignButton.onClick.AddListener(AddCurrentChestToSelectedNpc);
+            Root.transform.SetAsLastSibling();
             SetControlsActive(false);
         }
 
@@ -276,62 +285,105 @@ namespace Integration
             rootRect.pivot = new Vector2(0f, 0.5f);
             rootRect.sizeDelta = new Vector2(255f, 138f);
             rootRect.anchoredPosition = new Vector2(16f, -8f);
+            Root.transform.SetAsLastSibling();
         }
 
         public static void RefreshNpcDropdown(Container currentContainer)
         {
-            if (NpcDropdown == null)
+            if (SelectedNpcText == null)
                 return;
 
-            int oldValue = NpcDropdown.value;
             DropdownAgents.Clear();
-            NpcDropdown.ClearOptions();
-            List<string> options = new List<string>();
-
-            AgentComponent[] agents = UnityEngine.Object.FindObjectsOfType<AgentComponent>();
+            AgentComponent[] agents = UnityEngine.Object.FindObjectsByType<AgentComponent>(FindObjectsSortMode.None);
             foreach (AgentComponent agent in agents)
             {
                 if (agent == null || agent.Context == null)
                     continue;
-
-                if (agent.Context.HomeZone == null || !agent.Context.HomeZone.IsSet)
-                    continue;
-
-                if (currentContainer != null)
-                {
-                    float distanceToChest = Vector3.Distance(agent.transform.position, currentContainer.transform.position);
-                    float distanceToHome = Vector3.Distance(agent.Context.HomeZone.Center, currentContainer.transform.position);
-
-                    if (Mathf.Min(distanceToChest, distanceToHome) > NpcSearchDistance)
-                        continue;
-                }
-
                 DropdownAgents.Add(agent);
-                options.Add(AgentFriendlyNameUtility.GetDisplayName(agent));
             }
 
-            if (options.Count == 0)
-            {
-                options.Add("No NPC with home nearby");
-                NpcDropdown.AddOptions(options);
-                NpcDropdown.value = 0;
-                NpcDropdown.interactable = false;
+            DropdownAgents.Sort((a, b) => string.Compare(AgentFriendlyNameUtility.GetDisplayName(a), AgentFriendlyNameUtility.GetDisplayName(b), StringComparison.OrdinalIgnoreCase));
 
+            if (_selectorContainer != currentContainer)
+            {
+                _selectorContainer = currentContainer;
+                SelectedNpcIndex = 0;
+            }
+
+            Debug.LogWarning("[AgentNpcSelector] refreshed count=" + DropdownAgents.Count + " container=" + (currentContainer == null ? "null" : currentContainer.name));
+            UpdateSelectedNpcLabel();
+        }
+
+        private static void Diag(string message)
+        {
+            UnityEngine.Debug.LogWarning($"[AgentDiagBuild] {message}");
+        }
+        private static void UpdateSelectedNpcLabel()
+        {
+            if (SelectedNpcText == null)
+                return;
+            if (DropdownAgents.Count == 0)
+            {
+                SelectedNpcIndex = 0;
+                SelectedNpcText.text = "No NPC with home nearby";
+                if (PreviousNpcButton != null)
+                    PreviousNpcButton.interactable = false;
+                if (NextNpcButton != null)
+                    NextNpcButton.interactable = false;
                 if (AssignButton != null)
                     AssignButton.interactable = false;
-
-                NpcDropdown.RefreshShownValue();
                 return;
             }
-
-            NpcDropdown.AddOptions(options);
-            NpcDropdown.value = Mathf.Clamp(oldValue, 0, options.Count - 1);
-            NpcDropdown.interactable = true;
-
+            SelectedNpcIndex = Mathf.Clamp(SelectedNpcIndex, 0, DropdownAgents.Count - 1);
+            SelectedNpcText.text = AgentFriendlyNameUtility.GetDisplayName(DropdownAgents[SelectedNpcIndex]);
+            bool canCycle = DropdownAgents.Count > 1;
+            if (PreviousNpcButton != null)
+                PreviousNpcButton.interactable = canCycle;
+            if (NextNpcButton != null)
+                NextNpcButton.interactable = canCycle;
             if (AssignButton != null)
                 AssignButton.interactable = true;
+        }
 
-            NpcDropdown.RefreshShownValue();
+        private static void LogNpcSelectorClick(string direction)
+        {
+            _selectorClickLogTimer -= Time.deltaTime;
+            if (_selectorClickLogTimer > 0f)
+                return;
+            _selectorClickLogTimer = 0.5f;
+            string selected = DropdownAgents.Count > 0 && SelectedNpcIndex >= 0 && SelectedNpcIndex < DropdownAgents.Count ? AgentFriendlyNameUtility.GetDisplayName(DropdownAgents[SelectedNpcIndex]) : "none";
+            Debug.LogWarning("[AgentNpcSelector] direction=" + direction + " count=" + DropdownAgents.Count + " index=" + SelectedNpcIndex + " selected=" + selected);
+        }
+
+        private static void EnsureDropdownTemplateReferences()
+        {
+            if (NpcDropdown == null)
+                return;
+
+            if (NpcDropdown.template == null)
+                return;
+
+            if (NpcDropdown.itemText == null)
+            {
+                TextMeshProUGUI[] texts = NpcDropdown.template.GetComponentsInChildren<TextMeshProUGUI>(true);
+                foreach (TextMeshProUGUI text in texts)
+                {
+                    if (text != null && text.name.IndexOf("Item Label", StringComparison.OrdinalIgnoreCase) >= 0)
+                    {
+                        NpcDropdown.itemText = text;
+                        break;
+                    }
+                }
+            }
+
+            if (NpcDropdown.captionText != null)
+                NpcDropdown.captionText.color = new Color(1f, 0.95f, 0.78f, 1f);
+
+            if (NpcDropdown.itemText != null)
+            {
+                NpcDropdown.itemText.color = new Color(1f, 0.95f, 0.78f, 1f);
+                NpcDropdown.itemText.raycastTarget = false;
+            }
         }
 
         public static void SetControlsActive(bool active)
@@ -347,6 +399,65 @@ namespace Integration
 
             string name = agent.gameObject.name.Replace("(Clone)", string.Empty).Trim();
             return string.IsNullOrEmpty(name) ? "NPC" : name;
+        }
+
+        private static void CreateNpcSelector(Transform parent)
+        {
+            PreviousNpcButton = CreateButton(parent, "PreviousNpcButton", "<", new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(34f, 34f), new Vector2(-95f, -59f), out TextMeshProUGUI previousText);
+            PreviousNpcButton.onClick.AddListener(SelectPreviousNpc);
+
+            GameObject valueGo = new GameObject("NpcSelectorValue", typeof(RectTransform), typeof(Image));
+            valueGo.transform.SetParent(parent, false);
+            RectTransform valueRect = valueGo.GetComponent<RectTransform>();
+            valueRect.anchorMin = new Vector2(0.5f, 1f);
+            valueRect.anchorMax = new Vector2(0.5f, 1f);
+            valueRect.pivot = new Vector2(0.5f, 0.5f);
+            valueRect.sizeDelta = new Vector2(146f, 34f);
+            valueRect.anchoredPosition = new Vector2(0f, -59f);
+            Image valueImage = valueGo.GetComponent<Image>();
+            valueImage.color = new Color(0.08f, 0.06f, 0.04f, 0.98f);
+
+            SelectedNpcText = CreateText(valueGo.transform, "SelectedNpcText", "Select NPC", 15f, TextAlignmentOptions.Center, new Color(1f, 0.95f, 0.78f, 1f));
+            RectTransform textRect = SelectedNpcText.GetComponent<RectTransform>();
+            textRect.anchorMin = Vector2.zero;
+            textRect.anchorMax = Vector2.one;
+            textRect.offsetMin = new Vector2(6f, 0f);
+            textRect.offsetMax = new Vector2(-6f, 0f);
+
+            NextNpcButton = CreateButton(parent, "NextNpcButton", ">", new Vector2(0.5f, 1f), new Vector2(0.5f, 1f), new Vector2(34f, 34f), new Vector2(95f, -59f), out TextMeshProUGUI nextText);
+            NextNpcButton.onClick.AddListener(SelectNextNpc);
+        }
+
+        private static void SelectPreviousNpc()
+        {
+            CycleSelectedNpc(-1, "button-previous");
+        }
+
+        private static void SelectNextNpc()
+        {
+            CycleSelectedNpc(1, "button-next");
+        }
+
+        public static void CycleSelectedNpc(int direction, string source)
+        {
+            if (SelectedNpcText == null)
+                return;
+
+            RefreshNpcDropdown(InventoryGui.instance != null ? InventoryGui.instance.m_currentContainer : null);
+            if (DropdownAgents.Count == 0)
+            {
+                LogNpcSelectorClick(source + ":empty");
+                return;
+            }
+
+            SelectedNpcIndex += direction;
+            while (SelectedNpcIndex < 0)
+                SelectedNpcIndex += DropdownAgents.Count;
+            if (SelectedNpcIndex >= DropdownAgents.Count)
+                SelectedNpcIndex %= DropdownAgents.Count;
+
+            UpdateSelectedNpcLabel();
+            LogNpcSelectorClick(source);
         }
 
         private static TMP_Dropdown CreateDropdown(Transform parent)
@@ -383,8 +494,10 @@ namespace Integration
             arrowRect.sizeDelta = new Vector2(26f, 0f);
             arrowRect.anchoredPosition = Vector2.zero;
 
-            GameObject template = CreateDropdownTemplate(root.transform);
+            GameObject template = CreateDropdownTemplate(root.transform, out TextMeshProUGUI itemText);
             dropdown.template = template.GetComponent<RectTransform>();
+            dropdown.itemText = itemText;
+            dropdown.itemImage = null;
             template.SetActive(false);
             dropdown.options.Clear();
             dropdown.options.Add(new TMP_Dropdown.OptionData("No NPC with home nearby"));
@@ -393,8 +506,9 @@ namespace Integration
             return dropdown;
         }
 
-        private static GameObject CreateDropdownTemplate(Transform parent)
+        private static GameObject CreateDropdownTemplate(Transform parent, out TextMeshProUGUI itemText)
         {
+            itemText = null;
             GameObject template = new GameObject("Template", typeof(RectTransform), typeof(Image), typeof(ScrollRect));
             template.transform.SetParent(parent, false);
 
@@ -479,6 +593,7 @@ namespace Integration
             itemLabelRect.anchorMax = Vector2.one;
             itemLabelRect.offsetMin = new Vector2(12f, 0f);
             itemLabelRect.offsetMax = new Vector2(-8f, 0f);
+            itemText = itemLabel;
 
             scrollRect.viewport = viewportRect;
             scrollRect.content = contentRect;
@@ -528,14 +643,14 @@ namespace Integration
             if (gui == null || gui.m_currentContainer == null)
                 return;
 
-            if (DropdownAgents.Count == 0 || NpcDropdown == null || NpcDropdown.value < 0 || NpcDropdown.value >= DropdownAgents.Count)
+            if (DropdownAgents.Count == 0 || SelectedNpcIndex < 0 || SelectedNpcIndex >= DropdownAgents.Count)
             {
                 MessageHud.instance?.ShowMessage(MessageHud.MessageType.Center, "Select an NPC first");
                 return;
             }
 
             Container container = gui.m_currentContainer;
-            AgentComponent selectedAgent = DropdownAgents[NpcDropdown.value];
+            AgentComponent selectedAgent = DropdownAgents[SelectedNpcIndex];
             string result = AddDepositChest(selectedAgent, container);
             MessageHud.instance?.ShowMessage(MessageHud.MessageType.Center, result);
         }
@@ -584,6 +699,10 @@ namespace Integration
             zdo.Set("agent_has_deposit_chest", true);
             zdo.Set("agent_deposit_chest_pos", chestPosition);
             zdo.Set("agent_deposit_chest_name", container.gameObject.name);
+
+            ZNetView containerView = container.GetComponent<ZNetView>();
+            if (containerView != null && containerView.IsValid() && containerView.GetZDO() != null)
+                agent.SaveDepositChestToZDO(containerView.GetZDO().m_uid);
 
             return "Deposit chest added to " + AgentFriendlyNameUtility.GetDisplayName(agent);
         }
@@ -635,6 +754,19 @@ namespace Integration
                 return false;
 
             return true;
+        }
+    }
+
+    public class AgentNpcSelectorButton : MonoBehaviour, IPointerClickHandler
+    {
+        public int Direction;
+
+        public void OnPointerClick(PointerEventData eventData)
+        {
+            if (eventData != null && eventData.button != PointerEventData.InputButton.Left)
+                return;
+
+            AgentDepositChestGuiPatch_Awake.CycleSelectedNpc(Direction == 0 ? 1 : Direction, Direction < 0 ? "pointer-previous" : "pointer-next");
         }
     }
 
@@ -1396,6 +1528,7 @@ namespace Integration
 
             Image rootImage = Root.GetComponent<Image>();
             rootImage.color = new Color(0.12f, 0.09f, 0.07f, 0.92f);
+            rootImage.raycastTarget = true;
             AgentInventoryGuiShared.AddBorder(Root.transform);
 
             TitleText = AgentInventoryGuiShared.CreateText(Root.transform, "Title", "NPC needs", 16f, TextAlignmentOptions.Center, new Color(1f, 0.68f, 0.28f, 1f));

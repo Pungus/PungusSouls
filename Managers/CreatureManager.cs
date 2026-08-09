@@ -424,7 +424,7 @@ public class Creature
 
 			void updateAllSpawnConfigs()
 			{
-				foreach (SpawnSystem spawnSystem in Object.FindObjectsOfType<SpawnSystem>())
+				foreach (SpawnSystem spawnSystem in Object.FindObjectsByType<SpawnSystem>(FindObjectsSortMode.None))
 				{
 					foreach (SpawnSystemList spawnList in spawnSystem.m_spawnLists)
 					{
@@ -443,7 +443,7 @@ public class Creature
 			{
 				if (ObjectDB.instance)
 				{
-					foreach (BaseAI ai in Object.FindObjectsOfType<BaseAI>())
+					foreach (BaseAI ai in Object.FindObjectsByType<BaseAI>(FindObjectsSortMode.None))
 					{
 						creature.updateAi(ai);
 					}
@@ -474,7 +474,7 @@ public class Creature
 					{
 						creature.updateCharacterAttributes(prefabCharacter);
 					}
-					foreach (Character c in Object.FindObjectsOfType<Character>())
+					foreach (Character c in Object.FindObjectsByType<Character>(FindObjectsSortMode.None))
 					{
 						if (c.m_nview?.GetPrefabName() == creature.Prefab.name)
 						{

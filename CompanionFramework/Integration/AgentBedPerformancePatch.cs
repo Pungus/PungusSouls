@@ -129,7 +129,7 @@ public static class AgentBedRegistry
     public static void RefreshNow()
     {
         Beds.Clear();
-        Beds.AddRange(UnityEngine.Object.FindObjectsOfType<Bed>());
+        Beds.AddRange(UnityEngine.Object.FindObjectsByType<Bed>(FindObjectsSortMode.None));
         _nextRefreshTime = Time.time + RefreshInterval;
     }
 

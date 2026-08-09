@@ -11,20 +11,42 @@ public static class WeaponUpgradeStationRequirementTables
         public readonly Dictionary<int, int> Levels = new Dictionary<int, int>();
     }
 
-    private static readonly Dictionary<string, StationRequirementTable> Tables = new Dictionary<string, StationRequirementTable>(StringComparer.OrdinalIgnoreCase);
+    private static readonly Dictionary<string, StationRequirementTable> Tables =
+        new Dictionary<string, StationRequirementTable>(StringComparer.OrdinalIgnoreCase);
+
     private static bool _registered;
 
-    public static T SetUpgradeStationLevelRequirement<T>(this T itemOrPrefab, int currentQuality, int stationLevel) where T : class
+    public static bool DebugLogging;
+
+    public static T SetUpgradeStationLevelRequirement<T>(
+        this T itemOrPrefab,
+        int upgradeLevel,
+        int stationLevel) where T : class
     {
         string itemPrefab = ResolveItemPrefabName(itemOrPrefab);
-        SetStationLevelRequirement(itemPrefab, currentQuality, stationLevel);
+
+        SetStationLevelRequirement(
+            itemPrefab,
+            upgradeLevel,
+            stationLevel);
+
         return itemOrPrefab;
     }
 
-    public static T SetUpgradeStationLevelRequirementRange<T>(this T itemOrPrefab, int firstLevel, int lastLevel, int stationLevel) where T : class
+    public static T SetUpgradeStationLevelRequirementRange<T>(
+        this T itemOrPrefab,
+        int firstLevel,
+        int lastLevel,
+        int stationLevel) where T : class
     {
         string itemPrefab = ResolveItemPrefabName(itemOrPrefab);
-        SetStationLevelRequirementRange(itemPrefab, firstLevel, lastLevel, stationLevel);
+
+        SetStationLevelRequirementRange(
+            itemPrefab,
+            firstLevel,
+            lastLevel,
+            stationLevel);
+
         return itemOrPrefab;
     }
 
@@ -37,16 +59,24 @@ public static class WeaponUpgradeStationRequirementTables
         float multiplierPerLevel = 1f) where T : class
     {
         string itemPrefab = ResolveItemPrefabName(itemOrPrefab);
-        SetScaledStationLevelRequirementRange(itemPrefab, firstLevel, lastLevel, firstStationLevel, stationLevelStep, multiplierPerLevel);
+
+        SetScaledStationLevelRequirementRange(
+            itemPrefab,
+            firstLevel,
+            lastLevel,
+            firstStationLevel,
+            stationLevelStep,
+            multiplierPerLevel);
+
         return itemOrPrefab;
     }
 
-    public static void SetStationLevelRequirement(string itemPrefab, int currentQuality, int stationLevel)
+    public static void SetStationLevelRequirement(
+        string itemPrefab,
+        int upgradeLevel,
+        int stationLevel)
     {
-        if (string.IsNullOrWhiteSpace(itemPrefab))
-            return;
-
-        if (currentQuality <= 0)
+        if (string.IsNullOrWhiteSpace(itemPrefab) || upgradeLevel <= 0)
             return;
 
         stationLevel = Mathf.Max(1, stationLevel);
@@ -59,11 +89,26 @@ public static class WeaponUpgradeStationRequirementTables
             Tables[cleanName] = table;
         }
 
-        table.Levels[currentQuality] = stationLevel;
+        table.Levels[upgradeLevel] = stationLevel;
         _registered = true;
+
+        if (DebugLogging)
+        {
+            Debug.Log(
+                "[PungusSouls] Registered station level item=" +
+                cleanName +
+                " upgradeLevel=" +
+                upgradeLevel +
+                " stationLevel=" +
+                stationLevel);
+        }
     }
 
-    public static void SetStationLevelRequirementRange(string itemPrefab, int firstLevel, int lastLevel, int stationLevel)
+    public static void SetStationLevelRequirementRange(
+        string itemPrefab,
+        int firstLevel,
+        int lastLevel,
+        int stationLevel)
     {
         if (firstLevel > lastLevel)
         {
@@ -72,8 +117,16 @@ public static class WeaponUpgradeStationRequirementTables
             lastLevel = temp;
         }
 
+        firstLevel = Mathf.Max(1, firstLevel);
+        lastLevel = Mathf.Max(1, lastLevel);
+
         for (int level = firstLevel; level <= lastLevel; level++)
-            SetStationLevelRequirement(itemPrefab, level, stationLevel);
+        {
+            SetStationLevelRequirement(
+                itemPrefab,
+                level,
+                stationLevel);
+        }
     }
 
     public static void SetScaledStationLevelRequirementRange(
@@ -91,6 +144,9 @@ public static class WeaponUpgradeStationRequirementTables
             lastLevel = temp;
         }
 
+        firstLevel = Mathf.Max(1, firstLevel);
+        lastLevel = Mathf.Max(1, lastLevel);
+
         for (int level = firstLevel; level <= lastLevel; level++)
         {
             int index = level - firstLevel;
@@ -99,16 +155,21 @@ public static class WeaponUpgradeStationRequirementTables
             if (Math.Abs(multiplierPerLevel - 1f) > 0.0001f)
                 raw *= Mathf.Pow(multiplierPerLevel, index);
 
-            int stationLevel = Mathf.Max(1, Mathf.RoundToInt(raw));
-            SetStationLevelRequirement(itemPrefab, level, stationLevel);
+            SetStationLevelRequirement(
+                itemPrefab,
+                level,
+                Mathf.Max(1, Mathf.RoundToInt(raw)));
         }
     }
 
-    public static bool TryGetStationLevel(string itemPrefab, int currentQuality, out int stationLevel)
+    public static bool TryGetStationLevel(
+        string itemPrefab,
+        int upgradeLevel,
+        out int stationLevel)
     {
         stationLevel = 0;
 
-        if (!_registered)
+        if (!_registered || string.IsNullOrWhiteSpace(itemPrefab) || upgradeLevel <= 0)
             return false;
 
         string cleanName = CleanPrefabName(itemPrefab);
@@ -116,11 +177,101 @@ public static class WeaponUpgradeStationRequirementTables
         if (!Tables.TryGetValue(cleanName, out StationRequirementTable table))
             return false;
 
-        if (!table.Levels.TryGetValue(currentQuality, out stationLevel))
+        if (!table.Levels.TryGetValue(upgradeLevel, out stationLevel))
             return false;
 
         stationLevel = Mathf.Max(1, stationLevel);
         return true;
+    }
+
+    public static bool TryGetStationLevelForTargetQuality(
+        Recipe recipe,
+        int targetQuality,
+        out int stationLevel)
+    {
+        stationLevel = 0;
+
+        if (recipe == null || recipe.m_item == null || targetQuality <= 1)
+            return false;
+
+        int upgradeLevel = Mathf.Max(1, targetQuality);
+
+        foreach (string itemName in GetRecipeItemNames(recipe))
+        {
+            if (TryGetStationLevel(itemName, upgradeLevel, out stationLevel))
+                return true;
+        }
+
+        foreach (string itemName in GetRecipeItemNames(recipe))
+        {
+            if (PungusSouls.UpgradeMapRegistry.TryGetStationLevelForItem(
+                    itemName,
+                    upgradeLevel,
+                    out stationLevel))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public static string GetDebugLookupInfo(
+        Recipe recipe,
+        int targetQuality)
+    {
+        if (recipe == null || recipe.m_item == null)
+            return "recipe=null";
+
+        int upgradeLevel = Mathf.Max(1, targetQuality);
+        string[] names = GetRecipeItemNames(recipe).ToArray();
+
+        return
+            "targetQuality=" +
+            targetQuality +
+            " upgradeLevel=" +
+            upgradeLevel +
+            " names=" +
+            string.Join(",", names);
+    }
+
+    private static List<string> GetRecipeItemNames(Recipe recipe)
+    {
+        List<string> names = new List<string>();
+
+        if (recipe == null || recipe.m_item == null)
+            return names;
+
+        AddName(names, recipe.m_item.name);
+
+        if (recipe.m_item.gameObject != null)
+            AddName(names, recipe.m_item.gameObject.name);
+
+        if (recipe.m_item.m_itemData != null &&
+            recipe.m_item.m_itemData.m_dropPrefab != null)
+        {
+            AddName(names, recipe.m_item.m_itemData.m_dropPrefab.name);
+        }
+
+        return names;
+    }
+
+    private static void AddName(
+        List<string> names,
+        string name)
+    {
+        name = CleanPrefabName(name);
+
+        if (string.IsNullOrWhiteSpace(name))
+            return;
+
+        for (int i = 0; i < names.Count; i++)
+        {
+            if (string.Equals(names[i], name, StringComparison.OrdinalIgnoreCase))
+                return;
+        }
+
+        names.Add(name);
     }
 
     private static string ResolveItemPrefabName(object itemOrPrefab)
@@ -162,10 +313,15 @@ public static class WeaponUpgradeStationRequirementTables
         if (TryResolveNameFromValue(value, out prefabName))
             return prefabName;
 
-        throw new InvalidOperationException("Could not resolve prefab name from " + itemOrPrefab.GetType().FullName + ". Use WeaponUpgradeStationRequirementTables.SetStationLevelRequirement(\"PrefabName\", level, stationLevel) instead.");
+        throw new InvalidOperationException(
+            "Could not resolve prefab name from " +
+            itemOrPrefab.GetType().FullName +
+            ". Use WeaponUpgradeStationRequirementTables.SetStationLevelRequirement(\"PrefabName\", level, stationLevel) instead.");
     }
 
-    private static bool TryResolveNameFromValue(object value, out string name)
+    private static bool TryResolveNameFromValue(
+        object value,
+        out string name)
     {
         name = string.Empty;
 
@@ -201,7 +357,9 @@ public static class WeaponUpgradeStationRequirementTables
         return false;
     }
 
-    private static object TryGetMemberValue(object instance, string memberName)
+    private static object TryGetMemberValue(
+        object instance,
+        string memberName)
     {
         if (instance == null || string.IsNullOrWhiteSpace(memberName))
             return null;
@@ -210,7 +368,11 @@ public static class WeaponUpgradeStationRequirementTables
 
         while (type != null)
         {
-            PropertyInfo property = type.GetProperty(memberName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+            PropertyInfo property = type.GetProperty(
+                memberName,
+                BindingFlags.Instance |
+                BindingFlags.Public |
+                BindingFlags.NonPublic);
 
             if (property != null && property.GetIndexParameters().Length == 0)
             {
@@ -224,7 +386,11 @@ public static class WeaponUpgradeStationRequirementTables
                 }
             }
 
-            FieldInfo field = type.GetField(memberName, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+            FieldInfo field = type.GetField(
+                memberName,
+                BindingFlags.Instance |
+                BindingFlags.Public |
+                BindingFlags.NonPublic);
 
             if (field != null)
             {
@@ -254,42 +420,83 @@ public static class WeaponUpgradeStationRequirementTables
         if (cloneIndex >= 0)
             name = name.Substring(0, cloneIndex);
 
+        int bracketIndex = name.IndexOf('(');
+
+        if (bracketIndex >= 0)
+            name = name.Substring(0, bracketIndex);
+
+        int spaceIndex = name.IndexOf(' ');
+
+        if (spaceIndex >= 0)
+            name = name.Substring(0, spaceIndex);
+
         return name.Trim();
     }
 }
 
-[HarmonyPatch]
+[HarmonyPatch(typeof(Recipe), nameof(Recipe.GetRequiredStationLevel), new[] { typeof(int) })]
+[HarmonyAfter(new[] { "org.bepinex.helpers.ItemManager" })]
 public static class WeaponUpgradeStationRequirementPatch
 {
-    private static IEnumerable<MethodBase> TargetMethods()
+    [HarmonyPriority(Priority.Last)]
+    public static bool Prefix(
+        Recipe __instance,
+        int quality,
+        ref int __result)
     {
-        MethodInfo[] methods = typeof(Recipe).GetMethods(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+        bool found =
+            WeaponUpgradeStationRequirementTables.TryGetStationLevelForTargetQuality(
+                __instance,
+                quality,
+                out int stationLevel);
 
-        for (int i = 0; i < methods.Length; i++)
+        Debug.Log(
+            "[PungusSouls] Station Prefix " +
+            WeaponUpgradeStationRequirementTables.GetDebugLookupInfo(__instance, quality) +
+            " found=" +
+            found +
+            " stationLevel=" +
+            stationLevel);
+
+        if (found)
         {
-            MethodInfo method = methods[i];
-
-            if (method == null)
-                continue;
-
-            if (method.Name == "GetRequiredStationLevel" && method.ReturnType == typeof(int))
-                yield return method;
+            __result = stationLevel;
+            return false;
         }
+
+        return true;
     }
 
-    private static void Postfix(Recipe __instance, object[] __args, ref int __result)
+    [HarmonyPriority(Priority.Last)]
+    [HarmonyAfter(new[] { "org.bepinex.helpers.ItemManager" })]
+    public static void Postfix(
+        Recipe __instance,
+        int quality,
+        ref int __result)
     {
-        if (__instance == null || __instance.m_item == null)
-            return;
+        bool found =
+            WeaponUpgradeStationRequirementTables.TryGetStationLevelForTargetQuality(
+                __instance,
+                quality,
+                out int stationLevel);
 
-        int currentQuality = 1;
+        Debug.Log(
+            "[PungusSouls] Station Postfix " +
+            WeaponUpgradeStationRequirementTables.GetDebugLookupInfo(__instance, quality) +
+            " found=" +
+            found +
+            " stationLevel=" +
+            stationLevel +
+            " currentResultBeforeOverride=" +
+            __result);
 
-        if (__args != null && __args.Length > 0 && __args[0] is int quality)
-            currentQuality = quality;
-
-        string itemName = __instance.m_item.name;
-
-        if (WeaponUpgradeStationRequirementTables.TryGetStationLevel(itemName, currentQuality, out int stationLevel))
+        if (found)
+        {
             __result = stationLevel;
+
+            Debug.Log(
+                "[PungusSouls] Station Postfix forced result=" +
+                __result);
+        }
     }
 }

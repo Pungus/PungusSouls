@@ -7,6 +7,7 @@ public class AgentWaterAvoidance : MonoBehaviour
 {
     private AgentComponent _agent;
     private Character _character;
+    private Humanoid _humanoid;
     private ZNetView _zNetView;
     private Vector3 _lastSafePosition;
     private float _safeSampleTimer;
@@ -20,8 +21,12 @@ public class AgentWaterAvoidance : MonoBehaviour
     {
         _agent = GetComponent<AgentComponent>();
         _character = GetComponent<Character>();
+        _humanoid = GetComponent<Humanoid>();
         _zNetView = GetComponent<ZNetView>();
         _lastSafePosition = transform.position;
+
+        if (_humanoid == null)
+            enabled = false;
     }
 
     private void Update()
@@ -32,8 +37,17 @@ public class AgentWaterAvoidance : MonoBehaviour
         if (_character == null)
             _character = GetComponent<Character>();
 
+        if (_humanoid == null)
+            _humanoid = GetComponent<Humanoid>();
+
         if (_zNetView == null)
             _zNetView = GetComponent<ZNetView>();
+
+        if (_humanoid == null)
+        {
+            enabled = false;
+            return;
+        }
 
         if (_agent == null || _character == null || _character.IsDead())
             return;
@@ -256,6 +270,10 @@ public class AgentSlopeJumpAssist : MonoBehaviour
         _humanoid = GetComponent<Humanoid>();
         _zNetView = GetComponent<ZNetView>();
         _lastPosition = transform.position;
+
+        if (_humanoid == null)
+            enabled = false;
+
         CacheFields();
     }
 
@@ -272,6 +290,12 @@ public class AgentSlopeJumpAssist : MonoBehaviour
 
         if (_zNetView == null)
             _zNetView = GetComponent<ZNetView>();
+
+        if (_humanoid == null)
+        {
+            enabled = false;
+            return;
+        }
 
         if (_terrainAssist == null || _character == null || _character.IsDead())
             return;
@@ -438,7 +462,7 @@ public class AgentSlopeJumpAssist : MonoBehaviour
         {
             body.position = transform.position;
             float vertical = jumpDown ? 1.1f : 2.6f;
-            body.velocity = new Vector3(direction.x * 4.25f, Mathf.Max(body.velocity.y, vertical), direction.z * 4.25f);
+            body.linearVelocity = new Vector3(direction.x * 4.25f, Mathf.Max(body.linearVelocity.y, vertical), direction.z * 4.25f);
         }
 
         _jumpCooldown = JumpCooldown;

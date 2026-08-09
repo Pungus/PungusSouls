@@ -83,7 +83,7 @@ public class AgentFoodInventory : MonoBehaviour
         if (inventory == null)
             return null;
 
-        AgentFoodInventory[] all = UnityEngine.Object.FindObjectsOfType<AgentFoodInventory>();
+        AgentFoodInventory[] all = UnityEngine.Object.FindObjectsByType<AgentFoodInventory>(FindObjectsSortMode.None);
 
         foreach (AgentFoodInventory foodInventory in all)
         {

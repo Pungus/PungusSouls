@@ -174,7 +174,7 @@ namespace PungusSouls
             Vector3 position,
             float radius)
         {
-            ZNetView[] views = UnityEngine.Object.FindObjectsOfType<ZNetView>();
+            ZNetView[] views = UnityEngine.Object.FindObjectsByType<ZNetView>(FindObjectsSortMode.None);
 
             for (int i = 0; i < views.Length; i++)
             {
@@ -230,38 +230,90 @@ namespace PungusSouls
             ZoneSystem.ZoneVegetation vegetation,
             Vector3 position)
         {
-            if (instance == null || vegetation == null || vegetation.m_prefab == null)
+            if (instance == null)
+            {
+                Debug.Log("[PungusSouls SpawnSpacing] instance was null");
                 return;
+            }
+
+            if (vegetation == null)
+            {
+                Debug.Log("[PungusSouls SpawnSpacing] vegetation was null for " + instance.name);
+                return;
+            }
+
+            if (vegetation.m_prefab == null)
+            {
+                Debug.Log("[PungusSouls SpawnSpacing] vegetation prefab was null for " + instance.name);
+                return;
+            }
 
             string prefabName = vegetation.m_prefab.name;
 
+            Debug.Log(
+                "[PungusSouls SpawnSpacing] Checking placed vegetation prefab=" +
+                prefabName +
+                " instance=" +
+                instance.name +
+                " position=" +
+                position);
+
             if (!Definitions.TryGetValue(prefabName, out ResourceSpawnDefinition definition))
+            {
+                Debug.Log(
+                    "[PungusSouls SpawnSpacing] No definition found for prefab=" +
+                    prefabName);
+
                 return;
+            }
+
+            Debug.Log(
+                "[PungusSouls SpawnSpacing] Definition found for " +
+                prefabName +
+                " MinDistanceFromSame=" +
+                definition.MinDistanceFromSame);
 
             if (definition.MinDistanceFromSame <= 0f)
                 return;
 
-            if (IsTooCloseToTrackedPosition(prefabName, position, definition.MinDistanceFromSame))
+            if (!SpawnedPositions.TryGetValue(prefabName, out List<Vector3> positions))
             {
-                DestroySpawnedInstance(instance);
-                return;
+                positions = new List<Vector3>();
+                SpawnedPositions[prefabName] = positions;
             }
 
-            if (IsTooCloseToExistingInstance(instance, prefabName, position, definition.MinDistanceFromSame))
+            for (int i = 0; i < positions.Count; i++)
             {
-                Debug.Log("[PungusSouls] Removing too-close tracked " + prefabName);
-                Debug.Log("[PungusSouls] Removing too-close existing " + prefabName);
-                DestroySpawnedInstance(instance);
-                return;
+                float distance = Vector3.Distance(positions[i], position);
+
+                Debug.Log(
+                    "[PungusSouls SpawnSpacing] Distance from previous " +
+                    prefabName +
+                    " = " +
+                    distance.ToString("0.0") +
+                    " required=" +
+                    definition.MinDistanceFromSame.ToString("0.0"));
+
+                if (distance < definition.MinDistanceFromSame)
+                {
+                    Debug.Log(
+                        "[PungusSouls SpawnSpacing] Removing " +
+                        prefabName +
+                        " because it is too close. Distance=" +
+                        distance.ToString("0.0"));
+
+                    DestroySpawnedInstance(instance);
+                    return;
+                }
             }
+
+            positions.Add(position);
+
             Debug.Log(
-            "[PungusSouls] Checking " +
-            prefabName +
-            " at " +
-            position +
-            " MinDistanceFromSame=" +
-            definition.MinDistanceFromSame);
-            RegisterTrackedPosition(prefabName, position);
+                "[PungusSouls SpawnSpacing] Accepted " +
+                prefabName +
+                ". Tracked count=" +
+                positions.Count);
         }
 
         private static void DestroySpawnedInstance(GameObject instance)

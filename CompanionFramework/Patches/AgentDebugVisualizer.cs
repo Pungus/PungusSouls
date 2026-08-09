@@ -145,7 +145,7 @@ public class AgentDebugVisualizer : MonoBehaviour
         {
             agents = new List<AgentComponent>();
 
-            AgentComponent[] found = UnityEngine.Object.FindObjectsOfType<AgentComponent>();
+            AgentComponent[] found = UnityEngine.Object.FindObjectsByType<AgentComponent>(FindObjectsSortMode.None);
 
             for (int i = 0; i < found.Length; i++)
             {
